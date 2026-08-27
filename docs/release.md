@@ -40,15 +40,15 @@ Triggers the cross-build in `.github/workflows/release.yml`. Produces
 the four platform tarballs the npm wrapper downloads at install time.
 
 ```bash
-git tag v0.5.0 -m "coderef v0.5.0"
-git push origin v0.5.0
+git tag v0.6.0 -m "coderef v0.6.0"
+git push origin v0.6.0
 ```
 
-Then watch `gh run watch --branch v0.5.0` until the `release` job
+Then watch `gh run watch --branch v0.6.0` until the `release` job
 shows green. Verify:
 
 ```bash
-gh release view v0.5.0 --json assets --jq '.assets[].name'
+gh release view v0.6.0 --json assets --jq '.assets[].name'
 ```
 
 Expect 8 entries (4 platforms × 2 files: archive + `.sha256`).
@@ -70,15 +70,15 @@ avoids that gotcha without needing a separate PAT.)
 ### One-time setup
 
 1. **npm account + scope**: sign up at npmjs.com with username
-   `helly25` (auto-creates the `@helly25` scope under which
-   `@helly25/coderef` lives).
+   `mboworks` (auto-creates the `@mboworks` scope under which
+   `@mboworks/coderef` lives).
 2. **2FA**: enable on the publisher account with mode
    **`Auth Only`** — the CI token then bypasses interactive OTP
    for automation. (Auth-and-Writes mode forces OTP prompts and
    won't work in CI.)
 3. **Mint the token**: Profile → Access Tokens → Generate New
    Token → **Granular Access Token**. Permission: **Read and
-   write**. Packages and scopes: **`@helly25`**. Expiration: your
+   write**. Packages and scopes: **`@mboworks`**. Expiration: your
    rotation horizon (365d is a reasonable default). Copy the
    token immediately — npm shows it once.
 4. **Store as repo secret**: GitHub → repo → Settings → Secrets
@@ -90,7 +90,7 @@ avoids that gotcha without needing a separate PAT.)
 The workflow runs automatically on the GitHub Release-published
 event from step 1 — no extra action needed for normal releases.
 Watch progress at
-`https://github.com/helly25/coderef/actions/workflows/npm_publish.yml`.
+`https://github.com/mboworks/coderef/actions/workflows/npm_publish.yml`.
 
 For ad-hoc / retro-publish (e.g. a tag pushed before this workflow
 existed, or a re-publish after a transient registry failure):
@@ -103,7 +103,7 @@ gh run watch                                     # follow the run
 Verify on npm:
 
 ```bash
-npm view @helly25/coderef version
+npm view @mboworks/coderef version
 ```
 
 ### Manual fallback
@@ -153,7 +153,7 @@ via `scripts/bundle-wasm.cjs`.
 
 The workflow runs automatically on the tag push from step 1 — no
 extra action needed for normal releases. Watch progress at
-`https://github.com/helly25/coderef/actions/workflows/vscode_marketplace.yml`.
+`https://github.com/mboworks/coderef/actions/workflows/vscode_marketplace.yml`.
 
 For ad-hoc / retro-publish (e.g. a tag pushed before this workflow
 existed, or a re-publish after a marketplace-side issue), trigger
@@ -167,7 +167,7 @@ gh run watch                                     # follow the run
 Verify on the marketplace:
 
 ```bash
-npx vsce show helly25.coderef --json | jq '.versions[0]'
+npx vsce show mboworks.coderef --json | jq '.versions[0]'
 ```
 
 ### Manual fallback
@@ -196,9 +196,9 @@ export PATH="$HOME/.rustup/toolchains/$(rustup show active-toolchain | awk '{pri
 
 ## Tag → publish window: minutes, not hours
 
-The npm wrapper's install fetches `https://github.com/helly25/coderef/releases/download/v<X>/...`.
+The npm wrapper's install fetches `https://github.com/mboworks/coderef/releases/download/v<X>/...`.
 If npm publishes before the GitHub Release is fully populated,
-`npm install -g @helly25/coderef@<X>` fails with a 404 download error
+`npm install -g @mboworks/coderef@<X>` fails with a 404 download error
 until the assets land. Don't let users hit that window — finish all
 three channels in one sitting, or hold off on the npm publish until
 step 1's release page is fully populated.
@@ -208,9 +208,9 @@ step 1's release page is fully populated.
 - **GitHub Release**: `gh release delete v<X>` + `git tag -d v<X> &&
   git push --delete origin v<X>`.
 - **npm**: a published version is permanent (npm rejects republishing
-  the same number). Use `npm deprecate '@helly25/coderef@<X>' "reason"`
+  the same number). Use `npm deprecate '@mboworks/coderef@<X>' "reason"`
   and publish a patch with the fix.
-- **VSCode marketplace**: `vsce unpublish helly25.coderef@<X>` works
+- **VSCode marketplace**: `vsce unpublish mboworks.coderef@<X>` works
   but is visible in the extension's history.
 
 ## Pre-release / rc

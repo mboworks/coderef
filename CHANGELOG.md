@@ -7,6 +7,18 @@ versions follow [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
 
+## v0.6.0 — 2026-08-28
+
+### Changed
+
+- Transferred the project to MBO Works and replaced future-facing GitHub,
+  npm, VS Code Marketplace, and schema identities with `mboworks/coderef`,
+  `@mboworks/coderef`, `mboworks.coderef`, and
+  `https://mboworks.github.io/coderef/schema/v1.json` respectively.
+- Added a GitHub Pages deployment for the canonical schema and project site.
+- Added a version invariant that requires Cargo, npm, extension, documentation,
+  and changelog versions to agree and to advance after a release commit.
+
 ## v0.5.0 — 2026-06-18
 
 ### Highlights

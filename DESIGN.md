@@ -223,7 +223,7 @@ exists but is not portable. `coderef` ports the idea.
               ┌───────────────────────┘          └────────────────────────────┐
               │                                                               │
    ┌──────────▼──────────┐                                     ┌──────────────▼──────────────┐
-   │ @helly25/coderef    │                                     │     helly25.coderef         │
+   │ @mboworks/coderef    │                                     │     mboworks.coderef         │
    │ (npm wrapper, TS)   │                                     │     VSCode extension        │
    │ downloads bin at    │                                     │     (TypeScript)            │
    │ install for the     │                                     │  - DocumentLinkProvider     │
@@ -326,9 +326,9 @@ are golden-tested against `coderef --report json` for the same inputs.
 | ---------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Core library                 | `coderef-core` (Rust crate)   | Config, variables, regex engine driver, scanner, resolvers, verifier, changes, upgrade, doctor. No editor deps.                                                                                                                                                                |
 | CLI binary                   | `coderef` (Rust crate)        | `clap`-based subcommand router. Cross-compiled for darwin/{amd64,arm64}, linux/{amd64,arm64,musl}, windows/amd64.                                                                                                                                                              |
-| npm wrapper                  | `@helly25/coderef`            | Tiny TS shim. `postinstall` script picks the correct prebuilt binary by platform/arch and exposes the `coderef` bin. Lets `pre-commit` `language: node` and `npx -y @helly25/coderef …` Just Work.                                                                             |
-| **WASM module (v0.1)**       | `@helly25/coderef-core-wasm`  | `coderef-core` compiled via `wasm-bindgen`. Editor imports in-process for scan/hover/document-link hot paths. Hard cap: 1.5 MB gzipped; target ~600 KB. **No** I/O (file walker stays host-side via `vscode.workspace.findFiles`); **no** HTTP (verifier stays in the binary). |
-| VSCode extension             | `helly25.coderef` (TS)        | Imports `@helly25/coderef-core-wasm` from v0.1 for hot-path scanning; spawns the bin for verify/upgrade/changes/doctor/LSP (§14.5.1).                                                                                                                                          |
+| npm wrapper                  | `@mboworks/coderef`           | Tiny TS shim. `postinstall` script picks the correct prebuilt binary by platform/arch and exposes the `coderef` bin. Lets `pre-commit` `language: node` and `npx -y @mboworks/coderef …` Just Work.                                                                            |
+| **WASM module (v0.1)**       | `@mboworks/coderef-core-wasm` | `coderef-core` compiled via `wasm-bindgen`. Editor imports in-process for scan/hover/document-link hot paths. Hard cap: 1.5 MB gzipped; target ~600 KB. **No** I/O (file walker stays host-side via `vscode.workspace.findFiles`); **no** HTTP (verifier stays in the binary). |
+| VSCode extension             | `mboworks.coderef` (TS)       | Imports `@mboworks/coderef-core-wasm` from v0.1 for hot-path scanning; spawns the bin for verify/upgrade/changes/doctor/LSP (§14.5.1).                                                                                                                                         |
 | LSP server (v0.4)            | same Rust bin in `--lsp` mode | Implements `documentLink`, `hover`, `publishDiagnostics`, `codeAction`. Neovim/Helix/JetBrains plug in via standard LSP. WASM build of `coderef-core` is also available to LSP clients that prefer in-process embedding.                                                       |
 | JetBrains plugin (post-v0.4) | thin Kotlin LSP-client        | Mostly `plugin.xml` + LSP plumbing. Backlog (§20.5).                                                                                                                                                                                                                           |
 
@@ -363,8 +363,8 @@ coderef/
 │   ├── coderef-core/    # the library crate
 │   └── coderef-cli/     # the binary crate (depends on -core)
 ├── npm/
-│   └── coderef/         # @helly25/coderef wrapper (TS, downloads bin)
-├── extension/           # helly25.coderef VSCode extension (TS)
+│   └── coderef/         # @mboworks/coderef wrapper (TS, downloads bin)
+├── extension/           # mboworks.coderef VSCode extension (TS)
 ├── examples/            # sample .coderef.jsonc, .pre-commit-config.yaml,
 │                        # ifchange-lint-compat.jsonc (§10.12),
 │                        # blame-mapping.jsonc (§11.4)
@@ -1390,7 +1390,7 @@ in `$schema` is recommended:
 
 ```jsonc
 {
-  "$schema": "https://helly25.github.io/coderef/schema/v1.json",
+  "$schema": "https://mboworks.github.io/coderef/schema/v1.json",
   "variables":        { /* user-defined values, see §8.3 */ },
   "defaults":         { /* §5.4.2 — config-wide defaults applied when a pattern omits its own */ },
   "patterns":         { /* see §5, §10 */ },
@@ -1510,7 +1510,7 @@ Pre-commit users whose config lives outside the default search path pass
 
 ```yaml
 repos:
-  - repo: https://github.com/helly25/coderef
+  - repo: https://github.com/mboworks/coderef
     rev: v0.1.0
     hooks:
       - id: coderef-check
@@ -3443,9 +3443,9 @@ Coupled-change: 14 blocks examined, 2 violations
 
 ### 14.1 Extension manifest essentials
 
-- Publisher: `helly25`
+- Publisher: `mboworks`
 - Name: `coderef`
-- ID: `helly25.coderef`
+- ID: `mboworks.coderef`
 - Activation: workspace-wide; activate on the presence of any config file (or
   user setting), not per-language, so refs work in any text file.
 
@@ -3558,10 +3558,10 @@ user-triggered or save-driven, never on every keystroke.
 From v0.2 onward the extension uses two execution paths against the
 same `coderef-core` crate, chosen by operation kind:
 
-| Operation                                                               | Path                                                | Why                                                                                                                                                     |
-| ----------------------------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Scan files, hover, document-link enumeration                            | **WASM, in-process** (`@helly25/coderef-core-wasm`) | Sub-millisecond per file. Same regex engine as the CLI, so no "documented subset" caveat. Survives hundreds of edits/second without spawning processes. |
-| Verify (HTTP), `coderef upgrade`, `coderef changes`, doctor (deep), LSP | **Native binary**, spawned ad hoc                   | Needs network / file writes / git access / persistent state. Spawn overhead (~5–15 ms) is amortised over a user-action that already implies "do work."  |
+| Operation                                                               | Path                                                 | Why                                                                                                                                                     |
+| ----------------------------------------------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Scan files, hover, document-link enumeration                            | **WASM, in-process** (`@mboworks/coderef-core-wasm`) | Sub-millisecond per file. Same regex engine as the CLI, so no "documented subset" caveat. Survives hundreds of edits/second without spawning processes. |
+| Verify (HTTP), `coderef upgrade`, `coderef changes`, doctor (deep), LSP | **Native binary**, spawned ad hoc                    | Needs network / file writes / git access / persistent state. Spawn overhead (~5–15 ms) is amortised over a user-action that already implies "do work."  |
 
 The split is invisible to users — the extension API surface is one TS
 module that internally dispatches. The native binary is bundled with
@@ -4053,7 +4053,7 @@ Consumer usage:
 
 ```yaml
 repos:
-  - repo: https://github.com/helly25/coderef
+  - repo: https://github.com/mboworks/coderef
     rev: v0.1.0
     hooks:
       - id: coderef-check
@@ -4134,7 +4134,7 @@ independently-failable hook.
 pre-commit:
   commands:
     coderef:
-      run: npx -y @helly25/coderef check --staged
+      run: npx -y @mboworks/coderef check --staged
 ```
 
 ### 16.3 `husky` + `lint-staged`
@@ -4157,7 +4157,7 @@ underlying command is unchanged.
 
 ```yaml
 - name: coderef (full)
-  run: npx -y @helly25/coderef check --report sarif --profile ci-github > coderef.sarif
+  run: npx -y @mboworks/coderef check --report sarif --profile ci-github > coderef.sarif
 - uses: github/codeql-action/upload-sarif@v3
   with: { sarif_file: coderef.sarif }
 ```
@@ -4168,7 +4168,7 @@ PR-only verification, add a separate step:
 ```yaml
 - name: coderef (changed-lines on PR)
   if: github.event_name == 'pull_request'
-  run: npx -y @helly25/coderef check --changed --base origin/${{ github.base_ref }} --report sarif > coderef-pr.sarif
+  run: npx -y @mboworks/coderef check --changed --base origin/${{ github.base_ref }} --report sarif > coderef-pr.sarif
 - uses: github/codeql-action/upload-sarif@v3
   with: { sarif_file: coderef-pr.sarif }
 ```
@@ -4182,7 +4182,7 @@ coderef:
   before_script:
     - apk add --no-cache git           # alpine ships without git
   script:
-    - npx -y @helly25/coderef check --report sarif --profile ci-gitlab > coderef.sarif
+    - npx -y @mboworks/coderef check --report sarif --profile ci-gitlab > coderef.sarif
   artifacts:
     when:  always
     paths: [coderef.sarif]
@@ -4196,7 +4196,7 @@ verification on merge requests, use:
 
 ```yaml
   script:
-    - npx -y @helly25/coderef check --changed --base "$CI_MERGE_REQUEST_DIFF_BASE_SHA" --report sarif > coderef.sarif
+    - npx -y @mboworks/coderef check --changed --base "$CI_MERGE_REQUEST_DIFF_BASE_SHA" --report sarif > coderef.sarif
   only:
     - merge_requests
 ```
@@ -4208,7 +4208,7 @@ steps:
   - task: UseNode@1
     inputs: { version: '22.x' }
 
-  - bash: npx -y @helly25/coderef check --report sarif --profile ci-azure > coderef.sarif
+  - bash: npx -y @mboworks/coderef check --report sarif --profile ci-azure > coderef.sarif
     displayName: coderef (full)
 
   - task: PublishBuildArtifacts@1
@@ -4234,7 +4234,7 @@ pipelines:
         image: node:22-alpine
         script:
           - apk add --no-cache git
-          - npx -y @helly25/coderef check --report sarif --profile ci-bitbucket > coderef.sarif
+          - npx -y @mboworks/coderef check --report sarif --profile ci-bitbucket > coderef.sarif
         artifacts:
           - coderef.sarif
 ```
@@ -4259,7 +4259,7 @@ For corporate CI without Node, the GitHub Releases attach static
 binaries per platform. Download in a single step:
 
 ```bash
-curl -fsSL "https://github.com/helly25/coderef/releases/download/v0.1.0/coderef-${ARCH}-${OS}.tar.gz" \
+curl -fsSL "https://github.com/mboworks/coderef/releases/download/v0.1.0/coderef-${ARCH}-${OS}.tar.gz" \
   | tar -xz -C /usr/local/bin coderef
 coderef check --report sarif > coderef.sarif
 ```
@@ -4485,18 +4485,18 @@ step.
   matrix) for `darwin-{amd64,arm64}`, `linux-{amd64,arm64,musl}`,
   `windows-amd64`. Released as GitHub Release assets with checksums and
   Sigstore signatures.
-- **npm wrapper:** `@helly25/coderef` is a tiny TS package whose
+- **npm wrapper:** `@mboworks/coderef` is a tiny TS package whose
   `postinstall` script downloads the correct prebuilt binary from the
   matching GitHub Release. Falls back to `cargo install coderef` if a
   prebuilt is not available. Exposes the `coderef` bin. Lets
-  `pre-commit` `language: node` and `npx -y @helly25/coderef …` Just Work.
+  `pre-commit` `language: node` and `npx -y @mboworks/coderef …` Just Work.
 - **Cargo crates:** `coderef-core` and `coderef-cli` are published to
   crates.io. Semver; breaking changes bump major.
-- **VSCode extension:** `helly25.coderef` on VSCode Marketplace via `vsce`
+- **VSCode extension:** `mboworks.coderef` on VSCode Marketplace via `vsce`
   (matches `vscode-iwyu` setup). Bundles a default binary path; falls back
-  to `@helly25/coderef` if not found.
+  to `@mboworks/coderef` if not found.
 - **Schema:** the JSON Schema is mirrored at
-  `https://helly25.github.io/coderef/schema/v1.json` and bundled in the
+  `https://mboworks.github.io/coderef/schema/v1.json` and bundled in the
   cargo and npm packages so offline `$schema` resolution works.
 - **`pre-commit` consumers** reference this Git repo and pin `rev:`. We tag
   releases as `vX.Y.Z`.
@@ -4523,7 +4523,7 @@ divergence between editor and CLI would be a credibility loss the
 design is built to avoid (§14.5.1).
 
 - Rust workspace skeleton (`coderef-core`, `coderef-cli`) + npm wrapper.
-- **`@helly25/coderef-core-wasm`** (§14.5.1): `wasm-bindgen` build of
+- **`@mboworks/coderef-core-wasm`** (§14.5.1): `wasm-bindgen` build of
   `coderef-core` (~600 KB gzipped target, 1.5 MB hard cap). VSCode
   extension imports it for scan / hover / document-link hot paths.
   Native binary stays for HTTP / pre-commit invocations. `coderef-core`
@@ -4727,7 +4727,7 @@ committed):
   style templates, variable-dependency-graph panel, regex-builder
   wizard.
 - **Schema stability promises and marketplace polish**, **a
-  documentation site at `helly25.com/coderef`**.
+  documentation site at `mboworks.github.io/coderef`**.
 
 ---
 
@@ -4796,7 +4796,7 @@ committed):
 
 ```jsonc
 {
-  "$schema": "https://helly25.github.io/coderef/schema/v1.json",
+  "$schema": "https://mboworks.github.io/coderef/schema/v1.json",
 
   "ignore": ["**/node_modules/**", "**/dist/**", "**/.git/**", "**/*.min.*"],
 

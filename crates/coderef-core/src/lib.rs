@@ -1,6 +1,6 @@
 //! coderef-core
 //!
-//! Engine for [coderef](https://github.com/helly25/coderef). This crate is
+//! Engine for [coderef](https://github.com/mboworks/coderef). This crate is
 //! deliberately host-call-free: no filesystem walking, no process spawning,
 //! no HTTP. That discipline is what allows the same crate to compile to a
 //! native CLI binary and to a WASM module used in-process by the `VSCode`
@@ -11,7 +11,7 @@
 //! per-file scanner + host-side workspace walker. Verifier and the
 //! VSCode/WASM bindings land in subsequent PRs per `DESIGN.md` §20.
 
-#![doc(html_root_url = "https://docs.rs/coderef-core/0.5.0")]
+#![doc(html_root_url = "https://docs.rs/coderef-core/0.6.0")]
 
 #[cfg(not(target_arch = "wasm32"))]
 pub mod anchor;

@@ -8,6 +8,6 @@
 * References browser: activity-bar tree view with DESIGN §5.7.3 category-first grouping; live-updates via filesystem watcher.
 * Bridges to the native `coderef` binary for write-mode subcommands (`check`, `doctor`, `changes`, `commit-msg`) and HTTP verification.
 * UTF-16 ↔ UTF-8 offset translation: files containing em-dashes, emoji, or CJK characters now show reference positions correctly (prior versions shifted by N multi-byte characters).
-* In-process WASM core (`@helly25/coderef-core-wasm` bundled in the VSIX) so editor pattern resolution matches the CLI exactly.
+* In-process WASM core (`@mboworks/coderef-core-wasm` bundled in the VSIX) so editor pattern resolution matches the CLI exactly.
 
-The companion CLI ships from the [coderef](https://github.com/helly25/coderef) repo's GitHub Releases. The full feature changelog is in [`CHANGELOG.md`](https://github.com/helly25/coderef/blob/main/CHANGELOG.md) at the repo root.
+The companion CLI ships from the [coderef](https://github.com/mboworks/coderef) repo's GitHub Releases. The full feature changelog is in [`CHANGELOG.md`](https://github.com/mboworks/coderef/blob/main/CHANGELOG.md) at the repo root.

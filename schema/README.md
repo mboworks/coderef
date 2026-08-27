@@ -14,7 +14,7 @@ Add `$schema` at the top of your `.coderef.jsonc`:
 
 ```jsonc
 {
-  "$schema": "https://helly25.github.io/coderef/schema/v1.json",
+  "$schema": "https://mboworks.github.io/coderef/schema/v1.json",
   ...
 }
 ```

@@ -34,6 +34,14 @@ repos:
         types: [rust]
         pass_filenames: false
 
+      - id: release-version
+        name: Release version invariant
+        description: Require all public versions to agree and advance after a release.
+        entry: python3 tools/check-version.py
+        language: system
+        pass_filenames: false
+        always_run: true
+
       - id: cargo-clippy
         name: cargo clippy -D warnings
         description: Reject Rust code that fails clippy. Slow; runs only on Rust changes.

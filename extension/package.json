@@ -9,17 +9,17 @@
     "todo",
     "documentation"
   ],
-  "version": "0.5.0",
-  "publisher": "helly25",
+  "version": "0.6.0",
+  "publisher": "mboworks",
   "license": "Apache-2.0",
   "icon": "images/icon.png",
   "repository": {
     "type": "git",
-    "url": "https://github.com/helly25/coderef.git",
+    "url": "https://github.com/mboworks/coderef.git",
     "directory": "extension"
   },
-  "homepage": "https://github.com/helly25/coderef",
-  "bugs": "https://github.com/helly25/coderef/issues",
+  "homepage": "https://mboworks.github.io/coderef/",
+  "bugs": "https://github.com/mboworks/coderef/issues",
   "engines": {
     "vscode": "^1.92.0"
   },

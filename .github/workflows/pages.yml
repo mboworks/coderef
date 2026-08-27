@@ -1,0 +1,46 @@
+name: Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Pages artifact
+        run: |
+          mkdir -p _site/schema
+          cp schema/coderef.schema.json _site/schema/v1.json
+          cp schema/README.md _site/schema/README.md
+          printf '%s\n' \
+            '<!doctype html>' \
+            '<meta charset="utf-8">' \
+            '<title>coderef</title>' \
+            '<h1>coderef</h1>' \
+            '<p>Regex-driven source-code references from MBO Works.</p>' \
+            '<p><a href="schema/v1.json">JSON Schema v1</a> · <a href="https://github.com/mboworks/coderef">GitHub</a></p>' \
+            > _site/index.html
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

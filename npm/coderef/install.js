@@ -10,7 +10,7 @@
 //      (when this package is installed via `file:` from inside the
 //      coderef repo).
 //   4. Download the matching release tarball from
-//      https://github.com/helly25/coderef/releases. Verify SHA-256.
+//      https://github.com/mboworks/coderef/releases. Verify SHA-256.
 //   5. Fall back to `cargo build --release` if cargo is on PATH.
 //   6. Print a clear, actionable error and exit non-zero.
 
@@ -108,7 +108,7 @@ function tryDownload() {
   }
   const assetExt = platform === "windows" ? "zip" : "tar.gz";
   const assetName = `coderef-v${VERSION}-${platform}-${arch}.${assetExt}`;
-  const url = `https://github.com/helly25/coderef/releases/download/v${VERSION}/${assetName}`;
+  const url = `https://github.com/mboworks/coderef/releases/download/v${VERSION}/${assetName}`;
   const sumUrl = `${url}.sha256`;
 
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "coderef-dl-"));
@@ -265,7 +265,7 @@ function sameFile(a, b) {
 
 // Detect whether a file looks like a native executable rather than a
 // shell/node script. We otherwise risk copying *this very wrapper* —
-// when `npm install -g @helly25/coderef` runs a second time, the npm
+// when `npm install -g @mboworks/coderef` runs a second time, the npm
 // shim left by the first install sits at /opt/homebrew/bin/coderef on
 // macOS (or equivalents on Linux/Windows) and matches the PATH lookup.
 // Copying the shim into bin/coderef makes the wrapper spawn itself,

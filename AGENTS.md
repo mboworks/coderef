@@ -75,7 +75,7 @@ silently choosing one.
 ## Project conventions
 
 - License: Apache-2.0.
-- Publisher namespace: `helly25`.
+- Publisher namespace: `mboworks`.
 - The repo is a Rust workspace (`crates/coderef-core`, `crates/coderef-cli`)
   plus a TypeScript VSCode extension (`extension/`) and an npm binary wrapper
   (`npm/coderef/`). See `DESIGN.md` §4.3 for the layout.

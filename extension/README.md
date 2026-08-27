@@ -1,6 +1,6 @@
 # coderef
 
-[`coderef`](https://github.com/helly25/coderef) turns regex-defined references in your source — filenames, ticket IDs, RFC numbers, doc anchors, coupled-change markers — into clickable, hoverable, verifiable links. This extension is the VSCode integration: a `DocumentLinkProvider`, a `HoverProvider`, and a references browser, all backed by the same engine that powers the `coderef` CLI.
+[`coderef`](https://github.com/mboworks/coderef) turns regex-defined references in your source — filenames, ticket IDs, RFC numbers, doc anchors, coupled-change markers — into clickable, hoverable, verifiable links. This extension is the VSCode integration: a `DocumentLinkProvider`, a `HoverProvider`, and a references browser, all backed by the same engine that powers the `coderef` CLI.
 
 The engine ships as WASM inside the VSIX, so the in-editor experience and the CLI never diverge — they parse `.coderef.jsonc` the same way and resolve the same regexes against the same comment-region rules.
 
@@ -22,13 +22,13 @@ The engine ships as WASM inside the VSIX, so the in-editor experience and the CL
 
 ## Requirements
 
-A `.coderef.jsonc` (or `.coderef.json`) config in your workspace root, or in `.config/`. The repository's [README](https://github.com/helly25/coderef#readme) covers the schema; [`DESIGN.md`](https://github.com/helly25/coderef/blob/main/DESIGN.md) is the canonical reference.
+A `.coderef.jsonc` (or `.coderef.json`) config in your workspace root, or in `.config/`. The repository's [README](https://github.com/mboworks/coderef#readme) covers the schema; [`DESIGN.md`](https://github.com/mboworks/coderef/blob/main/DESIGN.md) is the canonical reference.
 
 For the write-mode subcommands and HTTP verification you also need the native `coderef` CLI on `$PATH`. Install via:
 
 ```sh
-npm install -g @helly25/coderef
-# or download a release: https://github.com/helly25/coderef/releases
+npm install -g @mboworks/coderef
+# or download a release: https://github.com/mboworks/coderef/releases
 # or build from source: cargo install --path crates/coderef-cli
 ```
 
@@ -44,9 +44,9 @@ npm install -g @helly25/coderef
 
 ## Related
 
-- **CLI**: [helly25/coderef](https://github.com/helly25/coderef) — `coderef check`, `coderef doctor`, `coderef changes`, `coderef commit-msg`, `coderef patterns`, `coderef explain`.
-- **npm wrapper**: [`@helly25/coderef`](https://www.npmjs.com/package/@helly25/coderef) — downloads the platform binary at install time.
-- **Changelog**: see [`CHANGELOG.md`](./CHANGELOG.md) for extension-scoped changes; the repo's [`CHANGELOG.md`](https://github.com/helly25/coderef/blob/main/CHANGELOG.md) covers the whole project.
+- **CLI**: [mboworks/coderef](https://github.com/mboworks/coderef) — `coderef check`, `coderef doctor`, `coderef changes`, `coderef commit-msg`, `coderef patterns`, `coderef explain`.
+- **npm wrapper**: [`@mboworks/coderef`](https://www.npmjs.com/package/@mboworks/coderef) — downloads the platform binary at install time.
+- **Changelog**: see [`CHANGELOG.md`](./CHANGELOG.md) for extension-scoped changes; the repo's [`CHANGELOG.md`](https://github.com/mboworks/coderef/blob/main/CHANGELOG.md) covers the whole project.
 
 ## License
 

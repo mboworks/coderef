@@ -1,6 +1,6 @@
 name: VSCode Marketplace Publish
 
-# Publishes the VSCode extension (helly25.coderef) to the **Visual
+# Publishes the VSCode extension (mboworks.coderef) to the **Visual
 # Studio Code Marketplace** (https://marketplace.visualstudio.com) —
 # the registry served by `code --install-extension` and the
 # Extensions sidebar in VSCode. Distinct from any future channel for
@@ -37,7 +37,7 @@ permissions:
 
 jobs:
   publish:
-    name: Publish helly25.coderef
+    name: Publish mboworks.coderef
     runs-on: ubuntu-latest
     steps:
       # Fail fast if the secret isn't configured rather than burning
@@ -108,4 +108,4 @@ jobs:
         # which YAML reads as a mapping value boundary in unquoted scalars —
         # use a block scalar (`|`) to keep the whole command as a single string.
         run: |
-          npx vsce show helly25.coderef --json | jq '{name, displayName, latestVersion: .versions[0].version}'
+          npx vsce show mboworks.coderef --json | jq '{name, displayName, latestVersion: .versions[0].version}'

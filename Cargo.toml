@@ -7,12 +7,12 @@ members = [
 ]
 
 [workspace.package]
-version    = "0.5.0"
+version    = "0.6.0"
 edition    = "2021"
 rust-version = "1.90"
 license    = "Apache-2.0"
-repository = "https://github.com/helly25/coderef"
-homepage   = "https://github.com/helly25/coderef"
+repository = "https://github.com/mboworks/coderef"
+homepage   = "https://mboworks.github.io/coderef/"
 authors    = ["Marcus Boerger (helly25)"]
 
 [workspace.dependencies]

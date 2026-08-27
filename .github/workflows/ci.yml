@@ -14,6 +14,15 @@ permissions:
   contents: read
 
 jobs:
+  version:
+    name: Release version invariant
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: python3 tools/check-version.py
+
   # ---------------------------------------------------------------------------
   rust:
     name: Rust workspace
@@ -498,7 +507,7 @@ jobs:
   #      results, so an elaborate result-table step doesn't add
   #      anything reviewers can't see one click away.
   done:
-    needs: [rust, wasm, extension, npm-wrapper, schema, docs]
+    needs: [version, rust, wasm, extension, npm-wrapper, schema, docs]
     if: always()
     runs-on: ubuntu-latest
     steps:

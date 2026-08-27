@@ -1,10 +1,10 @@
-name: npm publish (@helly25/coderef wrapper)
+name: npm publish (@mboworks/coderef wrapper)
 
-# Publishes the npm wrapper (@helly25/coderef) to https://registry.npmjs.org.
+# Publishes the npm wrapper (@mboworks/coderef) to https://registry.npmjs.org.
 # The wrapper itself doesn't ship a binary — its postinstall script
 # downloads the matching tarball from the corresponding GitHub
 # Release. So this channel depends on Channel 1 (release.yml)
-# completing first, otherwise `npm install -g @helly25/coderef@<X>`
+# completing first, otherwise `npm install -g @mboworks/coderef@<X>`
 # 404s during postinstall.
 #
 # Triggers:
@@ -25,7 +25,7 @@ name: npm publish (@helly25/coderef wrapper)
 # `feedback_github_token_no_downstream_workflows` for the saga.
 #
 # Required repo secret: NPM_TOKEN — a Granular Access Token from
-# npmjs.com with `Read and write` permission on the `@helly25`
+# npmjs.com with `Read and write` permission on the `@mboworks`
 # scope, and 2FA "Auth Only" mode on the publisher account so the
 # token bypasses interactive OTP. See docs/release.md §2.
 
@@ -46,7 +46,7 @@ permissions:
 
 jobs:
   publish:
-    name: Publish @helly25/coderef
+    name: Publish @mboworks/coderef
     runs-on: ubuntu-latest
     steps:
       # Fail fast if the secret isn't configured.
@@ -125,12 +125,12 @@ jobs:
         run: |
           expected="${TAG#v}"
           for i in 1 2 3 4 5; do
-            actual=$(npm view @helly25/coderef version 2>/dev/null || true)
+            actual=$(npm view @mboworks/coderef version 2>/dev/null || true)
             if [ "$actual" = "$expected" ]; then
-              echo "@helly25/coderef@$actual is live"
+              echo "@mboworks/coderef@$actual is live"
               exit 0
             fi
             echo "  attempt $i: registry shows '$actual', want '$expected' — retrying"
             sleep 5
           done
-          echo "::warning::registry didn't surface expected version within 25s; check https://www.npmjs.com/package/@helly25/coderef"
+          echo "::warning::registry didn't surface expected version within 25s; check https://www.npmjs.com/package/@mboworks/coderef"

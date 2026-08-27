@@ -16,8 +16,8 @@ suite("coderef extension — runtime", function () {
   this.timeout(30_000);
 
   suiteSetup(async () => {
-    const ext = vscode.extensions.getExtension("helly25.coderef");
-    assert.ok(ext, "helly25.coderef must be present in extensions list");
+    const ext = vscode.extensions.getExtension("mboworks.coderef");
+    assert.ok(ext, "mboworks.coderef must be present in extensions list");
     await ext.activate();
     assert.ok(ext.isActive, "extension activation must succeed");
   });

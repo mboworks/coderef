@@ -185,7 +185,7 @@
     "@vscode/test-electron":    "^2.5.2",
     "@vscode/vsce":             "^3.9.1",
     "eslint":                   "^9.39.4",
-    "globals":                  "^15.15.0",
+    "globals":                  "^17.11.0",
     "mocha":                    "^11.7.4",
     "tsx":                      "^4.20.6",
     "typescript":               "^5.9.3",

@@ -18,4 +18,4 @@ Future workflows (post-v0.1):
 
 - `release.yml` — `cargo dist` cross-compiled binaries on tag push.
 - `marketplace.yml` — `vsce publish` for the VSCode extension.
-- `npm-publish.yml` — `npm publish` for `@helly25/coderef`.
+- `npm-publish.yml` — `npm publish` for `@mboworks/coderef`.

@@ -4,7 +4,7 @@
 #   - The engine (coderef-core), CLI (coderef), and editor (extension/)
 #     all work end-to-end.
 #   - The hooks below declare `language: node`, which assumes the
-#     `@helly25/coderef` npm wrapper resolves to a real binary. v0.1
+#     `@mboworks/coderef` npm wrapper resolves to a real binary. v0.1
 #     ships the binary via `cargo build --release`; the npm wrapper
 #     downloads it from GitHub Releases in v0.2 once we publish.
 #   - Until v0.2 lands, consumers who want to wire pre-commit hooks

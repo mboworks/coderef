@@ -180,7 +180,7 @@
     "@types/node":              "^22.19.19",
     "@types/vscode":            "^1.92.0",
     "@typescript-eslint/eslint-plugin": "^8.60.0",
-    "@typescript-eslint/parser":        "^8.60.0",
+    "@typescript-eslint/parser":        "^8.68.0",
     "@vscode/test-cli":         "^0.0.10",
     "@vscode/test-electron":    "^2.5.2",
     "@vscode/vsce":             "^3.9.1",

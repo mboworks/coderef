@@ -3,14 +3,10 @@ name: Release
 # Fires only on annotated tags shaped like `v0.1.0`, `v0.2.1-rc1`, etc.
 # Builds the CLI for each supported target, uploads the binaries +
 # checksums + LICENSE bundle as release assets, and creates a GitHub
-# Release pointing at the tag. The npm wrapper's install.js downloads
-# from the URLs this workflow publishes.
-#
-# The npm publish step is intentionally absent until v0.2 — it would
-# need NPM_TOKEN in the repo secrets and a deliberate decision to
-# ship to the registry. For v0.1, consumers install from the GitHub
-# release directly (or use `cargo install --path crates/coderef-cli`
-# from a checkout).
+# Release pointing at the tag. After every GitHub asset exists, it invokes
+# the npm and Marketplace workflows in order. Each channel remains manually
+# dispatchable for a targeted retry, but a tag no longer starts three
+# independent publishing workflows in parallel.
 
 on:
   push:
@@ -139,3 +135,21 @@ jobs:
               --title "coderef $tag" \
               --notes "Automated release. See CHANGELOG when one ships, or DESIGN.md §20 for the planning horizon."
           gh release upload "$tag" _dist/* --clobber
+
+  npm:
+    name: Publish npm wrapper
+    needs: release
+    uses: ./.github/workflows/npm_publish.yml
+    with:
+      tag: ${{ github.ref_name }}
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  marketplace:
+    name: Publish VSCode extension
+    needs: npm
+    uses: ./.github/workflows/vscode_marketplace.yml
+    with:
+      tag: ${{ github.ref_name }}
+    secrets:
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}

@@ -1,9 +1,9 @@
 # Releasing coderef
 
-Three independent distribution channels, each tied to a credentialed
-external service. The release workflow plumbs them but the actual
-triggers stay manual on purpose — every channel is publicly visible
-and the consequences of a bad publish are slow to reverse.
+Three ordered distribution channels, each tied to a credentialed external
+service. A signed release tag starts one observable pipeline: GitHub Release,
+then the npm wrapper, then the VSCode Marketplace extension. Each downstream
+channel remains manually dispatchable for a targeted retry.
 
 Always do the channels in this order: **GitHub Release → npm wrapper
 → VSCode marketplace**. The npm wrapper downloads from the GitHub
@@ -55,17 +55,10 @@ Expect 8 entries (4 platforms × 2 files: archive + `.sha256`).
 
 ## 2. npm wrapper
 
-Automated by `.github/workflows/npm_publish.yml`. The workflow fires
-on the same tag push that drives step 1 and waits (polls up to 30
-minutes) for release.yml to create the GitHub Release with assets
-before calling `npm publish`. There's no window where the wrapper
-exists on npm but the binaries it tries to download don't.
-
-(We originally wired this on `release: types: [published]`, but
-that event is suppressed by GitHub Actions when the originating
-`gh release create` ran with the workflow's built-in `GITHUB_TOKEN`
-— an anti-recursion safeguard. The tag-push trigger + wait loop
-avoids that gotcha without needing a separate PAT.)
+Automated by `.github/workflows/npm_publish.yml`. `release.yml` calls it only
+after the GitHub Release job has uploaded all eight expected assets. The npm
+workflow independently verifies the exact asset count before publishing, so a
+manual retry cannot create an unusable wrapper either.
 
 ### One-time setup
 
@@ -87,8 +80,8 @@ avoids that gotcha without needing a separate PAT.)
 
 ### Per-release flow
 
-The workflow runs automatically on the GitHub Release-published
-event from step 1 — no extra action needed for normal releases.
+The workflow runs as the second job in the ordered release pipeline — no extra
+action is needed for normal releases.
 Watch progress at
 `https://github.com/mboworks/coderef/actions/workflows/npm_publish.yml`.
 
@@ -132,11 +125,10 @@ npm install --no-audit --no-fund "$REPO_ROOT/npm/coderef"
 
 ## 3. VSCode marketplace (extension VSIX)
 
-Automated by `.github/workflows/vscode_marketplace.yml`. The workflow fires
-on the same tag push that drives step 1, builds the VSIX in CI (Rust
-+ wasm32 + wasm-pack + Node), uploads it as a downloadable artifact,
-and calls `vsce publish` using the `VSCE_PAT` repo secret. This
-channel is independent of step 1 — the VSIX bundles its own WASM
+Automated by `.github/workflows/vscode_marketplace.yml`. `release.yml` invokes
+it after npm publication succeeds. It builds the VSIX in CI (Rust + wasm32 +
+wasm-pack + Node), uploads it as a downloadable artifact, and calls
+`vsce publish` using the `VSCE_PAT` repo secret. The VSIX bundles its own WASM
 via `scripts/bundle-wasm.cjs`.
 
 ### One-time setup
@@ -151,8 +143,8 @@ via `scripts/bundle-wasm.cjs`.
 
 ### Per-release flow
 
-The workflow runs automatically on the tag push from step 1 — no
-extra action needed for normal releases. Watch progress at
+The workflow runs as the third job in the ordered release pipeline — no extra
+action is needed for normal releases. Watch progress at
 `https://github.com/mboworks/coderef/actions/workflows/vscode_marketplace.yml`.
 
 For ad-hoc / retro-publish (e.g. a tag pushed before this workflow

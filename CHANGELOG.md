@@ -7,6 +7,12 @@ versions follow [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
 
+### Changed
+
+- Ordered release publication as GitHub assets, npm wrapper, then VS Code
+  Marketplace extension, while retaining manually dispatchable downstream
+  retries.
+
 ## v0.6.0 — 2026-08-28
 
 ### Changed

@@ -7,12 +7,12 @@ name: VSCode Marketplace Publish
 # Open VSX, JetBrains, etc.; if those are added later they get their
 # own workflow file so each one is independently auditable.
 #
-# Independent of release.yml — the VSIX bundles its own WASM via
-# scripts/bundle-wasm.cjs, so this channel doesn't depend on the
-# GitHub Releases CLI binaries being present yet.
+# The VSIX bundles its own WASM via scripts/bundle-wasm.cjs. The normal
+# release path still invokes this only after GitHub and npm publication so
+# users observe one ordered release rather than parallel partial releases.
 #
 # Triggers:
-#   - tag push (zero-touch publish per release; matches release.yml)
+#   - workflow_call from release.yml after npm publication
 #   - workflow_dispatch with a `tag` input (ad-hoc / retro-publish a
 #     tag that pre-dates this workflow).
 #
@@ -21,10 +21,15 @@ name: VSCode Marketplace Publish
 # `All accessible organizations`. See docs/release.md §3.
 
 on:
-  push:
-    tags:
-      - "v*.*.*"
-      - "v*.*.*-*"
+  workflow_call:
+    inputs:
+      tag:
+        description: "Tag to publish (for example v0.6.0)."
+        required: true
+        type: string
+    secrets:
+      VSCE_PAT:
+        required: true
   workflow_dispatch:
     inputs:
       tag:
@@ -54,10 +59,7 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
-          # On tag push, github.ref is refs/tags/<tag>. On
-          # workflow_dispatch, inputs.tag is e.g. "v0.2.1" — checkout
-          # accepts either form.
-          ref: ${{ inputs.tag || github.ref }}
+          ref: ${{ inputs.tag }}
 
       # Mirrors the toolchain setup from ci.yml's `extension` job so
       # any drift between CI build and publish build is obvious.

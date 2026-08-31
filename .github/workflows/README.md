@@ -14,8 +14,12 @@ jobs in parallel:
 If any of these fail on a PR, that's the signal to look at the diff
 before approving.
 
-Future workflows (post-v0.1):
+Release workflows:
 
-- `release.yml` — `cargo dist` cross-compiled binaries on tag push.
-- `marketplace.yml` — `vsce publish` for the VSCode extension.
-- `npm-publish.yml` — `npm publish` for `@mboworks/coderef`.
+- `release.yml` — builds the four CLI archives on a signed version tag,
+  publishes the GitHub Release, then invokes npm and Marketplace publication
+  in order.
+- `npm_publish.yml` — reusable npm publication for `@mboworks/coderef`, with a
+  manually dispatchable retry path that first verifies all GitHub assets.
+- `vscode_marketplace.yml` — reusable Marketplace publication for
+  `mboworks.coderef`, also manually dispatchable for a targeted retry.

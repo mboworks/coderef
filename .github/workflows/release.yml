@@ -103,7 +103,7 @@ jobs:
           mkdir -p "$GITHUB_WORKSPACE/_dist"
           cp "$name.${{ matrix.archive_ext }}" "$name.${{ matrix.archive_ext }}.sha256" "$GITHUB_WORKSPACE/_dist/"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: coderef-${{ matrix.asset_suffix }}
           path: _dist/*
@@ -117,7 +117,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           path: _dist
           merge-multiple: true

@@ -89,7 +89,7 @@ jobs:
 
       # Upload the VSIX so humans can download it from the run page
       # for inspection — handy when debugging a failed publish.
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: coderef-vsix
           path: extension/coderef-*.vsix

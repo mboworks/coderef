@@ -180,16 +180,16 @@
     "@types/node":              "^22.19.19",
     "@types/vscode":            "^1.92.0",
     "@typescript-eslint/eslint-plugin": "^8.60.0",
-    "@typescript-eslint/parser":        "^8.60.0",
+    "@typescript-eslint/parser":        "^8.68.0",
     "@vscode/test-cli":         "^0.0.10",
-    "@vscode/test-electron":    "^2.5.2",
+    "@vscode/test-electron":    "^3.1.0",
     "@vscode/vsce":             "^3.9.1",
     "eslint":                   "^9.39.4",
-    "globals":                  "^15.15.0",
+    "globals":                  "^17.11.0",
     "mocha":                    "^11.7.4",
     "tsx":                      "^4.20.6",
     "typescript":               "^5.9.3",
-    "typescript-eslint":        "^8.60.0"
+    "typescript-eslint":        "^8.68.0"
   },
   "overrides": {
     "diff": "8.0.3",

@@ -19,7 +19,7 @@ authors    = ["Marcus Boerger (helly25)"]
 serde         = { version = "1.0", features = ["derive"] }
 serde_json    = { version = "1.0", features = ["preserve_order"] }
 jsonc-parser  = { version = "0.27", features = ["serde"] }
-schemars      = { version = "0.8", features = ["preserve_order", "indexmap2"] }
+schemars      = { version = "1.2", features = ["preserve_order", "indexmap2"] }
 fancy-regex   = "0.19"
 thiserror     = "2.0"
 anyhow        = "1.0"

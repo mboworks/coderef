@@ -285,11 +285,12 @@ pub fn extract_blocks_with_markers(
         // parens (Shape C). For per-pattern regexes we use the
         // matched text length as a proxy since the parser doesn't
         // know the keyword statically.
-        let mut open_match: Option<(fancy_regex::Captures<'_>, usize, MarkerForm)> = IF_CHANGE_RE
-            .captures(line)
-            .ok()
-            .flatten()
-            .map(|c| (c, "IfChange".len(), MarkerForm::Canonical));
+        let mut open_match: Option<(fancy_regex::Captures<'_, str>, usize, MarkerForm)> =
+            IF_CHANGE_RE
+                .captures(line)
+                .ok()
+                .flatten()
+                .map(|c| (c, "IfChange".len(), MarkerForm::Canonical));
         if open_match.is_none() {
             open_match = LABEL_OPEN_RE
                 .captures(line)

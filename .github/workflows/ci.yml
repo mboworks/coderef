@@ -18,7 +18,7 @@ jobs:
     name: Release version invariant
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - run: python3 tools/check-version.py
@@ -28,7 +28,7 @@ jobs:
     name: Rust workspace
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install Rust toolchain (per rust-toolchain.toml)
         run: |
@@ -172,7 +172,7 @@ jobs:
     name: WASM build + Node smoke
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install Rust toolchain (per rust-toolchain.toml)
         run: |
@@ -305,7 +305,7 @@ jobs:
     name: VSCode extension (TS + VSIX)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Rust toolchain + wasm-pack are needed for `npm run build` /
       # `vsce package`, which run scripts/bundle-wasm.cjs to produce the
@@ -389,7 +389,7 @@ jobs:
     name: npm wrapper smoke
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install Rust toolchain (cargo for the source-build fallback)
         run: rustup toolchain install
@@ -432,7 +432,7 @@ jobs:
     name: JSON Schema validation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-python@v7
         with:
@@ -455,7 +455,7 @@ jobs:
     name: Docs hygiene (table alignment + cross-refs)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-python@v7
         with:
@@ -511,7 +511,7 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Ensure every job is wired into this gate
         env:
           NEEDS_JSON: ${{ toJSON(needs) }}

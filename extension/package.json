@@ -187,7 +187,7 @@
     "eslint":                   "^9.39.4",
     "globals":                  "^17.11.0",
     "mocha":                    "^11.8.0",
-    "tsx":                      "^4.20.6",
+    "tsx":                      "^4.23.13",
     "typescript":               "^5.9.3",
     "typescript-eslint":        "^8.68.0"
   },

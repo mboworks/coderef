@@ -30,6 +30,7 @@ use indexmap::IndexMap;
 #[cfg(feature = "schemars")]
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+#[cfg(not(target_arch = "wasm32"))]
 use std::path::Path;
 use thiserror::Error;
 
@@ -84,9 +85,12 @@ pub struct Config {
 impl Config {
     /// Parse a config from a JSONC string.
     pub fn from_jsonc_str(src: &str) -> Result<Self, ConfigError> {
-        let value: serde_json::Value = jsonc_parser::parse_to_serde_value(src, &Default::default())
-            .map_err(|e| ConfigError::ParseJsonc(e.to_string()))?
-            .ok_or(ConfigError::EmptyConfig)?;
+        let value = jsonc_parser::parse_to_serde_value::<Option<serde_json::Value>>(
+            src,
+            &Default::default(),
+        )
+        .map_err(|e| ConfigError::ParseJsonc(e.to_string()))?
+        .ok_or(ConfigError::EmptyConfig)?;
         Self::from_value(value)
     }
 

@@ -130,10 +130,11 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           tag="${GITHUB_REF#refs/tags/}"
+          bash tools/release_notes.sh "$tag" > release-notes.md
           gh release view "$tag" >/dev/null 2>&1 || \
             gh release create "$tag" \
               --title "coderef $tag" \
-              --notes "Automated release. See CHANGELOG when one ships, or DESIGN.md §20 for the planning horizon."
+              --notes-file release-notes.md
           gh release upload "$tag" _dist/* --clobber
 
   npm:

@@ -1,0 +1,7 @@
+# coderef @TAG@
+
+## Release resources
+
+- [Release website](https://mboworks.github.io/coderef/site/tag/@TAG@/)
+- [Changelog](https://github.com/mboworks/coderef/blob/@TAG@/CHANGELOG.md)
+- [JSON Schema v1](https://mboworks.github.io/coderef/site/tag/@TAG@/schema/v1.json)

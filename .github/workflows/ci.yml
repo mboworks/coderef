@@ -527,7 +527,7 @@ jobs:
   #      results, so an elaborate result-table step doesn't add
   #      anything reviewers can't see one click away.
   done:
-    needs: [version, rust, wasm, extension, npm-wrapper, schema, docs]
+    needs: [release-site-tests, version, rust, wasm, extension, npm-wrapper, schema, docs]
     if: always()
     runs-on: ubuntu-latest
     steps:

@@ -211,3 +211,7 @@ For a release candidate, use the SemVer pre-release form: tag as
 `v0.2.0-rc1`, bump all five `version` fields to `0.2.0-rc.1` (note
 the `.` before the number for npm/SemVer; Cargo accepts both). Test
 publish to a private npm scope or skip npm entirely for rcs.
+
+Release notes are rendered from `.github/release-notes.md.template` by
+`tools/release_notes.sh TAG`. They link to the immutable website and JSON schema
+for that exact tag, together with its changelog.

@@ -1,46 +1,154 @@
-name: Pages
+# SPDX-FileCopyrightText: Copyright (c) M. Boerger, the MBO Works authors
+# SPDX-License-Identifier: Apache-2.0
+name: Publish release site
 
 on:
   push:
     branches: [main]
+  # Releases created with GITHUB_TOKEN do not trigger release events.
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Published release tag (empty selects latest)
+        type: string
+        required: false
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+      config_path:
+        description: Optional config file on main for backfill (empty uses the tag config)
+        type: string
+        required: false
 
+permissions: {}
+
+# Share the lock and retained branch with coverage: every deployment includes both.
 concurrency:
-  group: pages
-  cancel-in-progress: true
+  group: coverage-pages
+  queue: max
+  cancel-in-progress: false
 
 jobs:
-  deploy:
+  publish:
+    if: >-
+      github.event_name != 'workflow_run' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-
-      - name: Build Pages artifact
+        with:
+          ref: main
+          path: source
+      - name: Resolve published release
+        if: github.event_name != 'push'
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUESTED_TAG: ${{ inputs.tag }}
+          RUN_TAG: ${{ github.event.workflow_run.head_branch }}
         run: |
-          mkdir -p _site/schema
-          cp schema/coderef.schema.json _site/schema/v1.json
-          cp schema/README.md _site/schema/README.md
-          printf '%s\n' \
-            '<!doctype html>' \
-            '<meta charset="utf-8">' \
-            '<title>coderef</title>' \
-            '<h1>coderef</h1>' \
-            '<p>Regex-driven source-code references from MBO Works.</p>' \
-            '<p><a href="schema/v1.json">JSON Schema v1</a> · <a href="https://github.com/mboworks/coderef">GitHub</a></p>' \
-            > _site/index.html
-
+          set -euo pipefail
+          if gh api "repos/${GITHUB_REPOSITORY}/releases/latest" > latest.json; then
+            latest="$(jq -r .tag_name latest.json)"
+          elif jq --exit-status '.status == "404"' latest.json >/dev/null; then
+            latest="" # A repository may have only prereleases so far.
+          else
+            exit 1
+          fi
+          tag="${REQUESTED_TAG:-${RUN_TAG:-${latest}}}"
+          if [[ ! "${tag}" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid release tag: ${tag}" >&2
+            exit 1
+          fi
+          gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${tag}" > release.json
+          jq --exit-status '.draft == false' release.json
+          echo "tag=${tag}" >> "${GITHUB_OUTPUT}"
+          echo "latest=${latest}" >> "${GITHUB_OUTPUT}"
+      - uses: actions/checkout@v7
+        if: github.event_name != 'push'
+        with:
+          ref: refs/tags/${{ steps.release.outputs.tag }}
+          path: release
+          persist-credentials: false
+      - name: Restore retained Pages tree
+        working-directory: source
+        run: |
+          set -euo pipefail
+          git fetch origin
+          if git show-ref --verify --quiet refs/remotes/origin/coverage-pages; then
+            git worktree add ../site -B coverage-pages origin/coverage-pages
+          else
+            git worktree add --detach ../site
+            git -C ../site checkout --orphan coverage-pages
+            git -C ../site rm -rf .
+          fi
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - name: Test site builder
+        working-directory: source
+        run: python3 -m unittest discover -s tools -p release_site_test.py
+      - name: Convert release documentation and update latest redirect
+        if: github.event_name != 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+          LATEST_TAG: ${{ steps.release.outputs.latest }}
+          CONFIG_PATH: ${{ inputs.config_path }}
+        run: |
+          set -euo pipefail
+          config_args=()
+          if [[ -n "${CONFIG_PATH}" ]]; then
+            config_file="$(realpath --canonicalize-existing "source/${CONFIG_PATH}")"
+            if [[ "${config_file}" != "${GITHUB_WORKSPACE}/source/"* ]]; then
+              echo "Configuration must be a tracked file inside the main checkout" >&2
+              exit 1
+            fi
+            git -C source ls-files --error-unmatch -- "${CONFIG_PATH}" >/dev/null
+            config_args=(--config "${config_file}")
+          fi
+          python3 source/tools/release_site.py release site \
+            --repository "${GITHUB_REPOSITORY}" --tag "${RELEASE_TAG}" --latest "${LATEST_TAG}" \
+            "${config_args[@]}"
+      - name: Preserve the public schema endpoint
+        run: |
+          mkdir -p site/schema
+          cp source/schema/coderef.schema.json site/schema/v1.json
+          cp source/schema/README.md site/schema/README.md
+          # Preserve the existing landing page until the first versioned site ships.
+          if [[ ! -f site/index.html ]]; then
+            printf '%s\n' \
+              '<!doctype html><html lang="en"><meta charset="utf-8"><title>coderef</title>' \
+              '<h1>coderef</h1><p>Regex-driven source-code references from MBO Works.</p>' \
+              '<p><a href="schema/v1.json">JSON Schema v1</a> · <a href="https://github.com/mboworks/coderef">GitHub</a></p></html>' \
+              > site/index.html
+          fi
+      - name: Retain and stage complete Pages tree
+        env:
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          git -C site config user.name 'github-actions[bot]'
+          git -C site config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git -C site add --all
+          if ! git -C site diff --cached --quiet; then
+            git -C site commit -m "site: publish ${RELEASE_TAG}"
+            git -C site push origin HEAD:coverage-pages
+          fi
+          mkdir -p public
+          rsync --archive --exclude='.git' site/ public/
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:
-          path: _site
-      - name: Deploy GitHub Pages
+          path: public
+      - name: Deploy complete site
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

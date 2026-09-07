@@ -1,0 +1,164 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>docs/release.md - coderef v0.5.0</title><style>
+:root { color-scheme: light dark; font: 17px/1.6 system-ui, sans-serif; }
+body { max-width: 76rem; margin: auto; padding: 2rem; }
+a { color: light-dark(#075da8, #8cc8ff); }
+nav { display: flex; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid #888; }
+pre { padding: 1rem; overflow: auto; background: light-dark(#f3f5f7, #20252b); }
+code { font-size: .9em; } img { max-width: 100%; }
+table { display: block; overflow: auto; border-collapse: collapse; }
+th, td { border: 1px solid #888; padding: .4rem .7rem; }
+blockquote { border-left: 4px solid #888; margin-left: 0; padding-left: 1rem; }
+</style><body><nav><a href="/coderef/site/tag/v0.5.0/">Home</a><a href="/coderef/site/tag/v0.5.0/documents.html">Documentation</a><a href="https://github.com/mboworks/coderef/releases/tag/v0.5.0">Release &amp; downloads</a><a href="https://github.com/mboworks/coderef/tree/0eb7e44fcf145f41f78040601a18e3e9764a960e">Source</a><a href="/coderef/site/tag/v0.5.0/schema/v1.json">JSON Schema v1</a></nav><p>coderef v0.5.0</p><main><h1 dir="auto" id="releasing-coderef">Releasing coderef</h1>
+<p dir="auto">Three independent distribution channels, each tied to a credentialed<br>
+external service. The release workflow plumbs them but the actual<br>
+triggers stay manual on purpose — every channel is publicly visible<br>
+and the consequences of a bad publish are slow to reverse.</p>
+<p dir="auto">Always do the channels in this order: <strong>GitHub Release → npm wrapper<br>
+→ VSCode marketplace</strong>. The npm wrapper downloads from the GitHub<br>
+Release at install time; the marketplace extension bundles the WASM<br>
+locally so it doesn't depend on the others, but a misordered publish<br>
+makes the npm wrapper unusable until the GitHub Release exists.</p>
+<h2 dir="auto" id="0-pre-flight-every-release">0. Pre-flight (every release)</h2>
+<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate">git checkout main <span class="pl-k">&amp;&amp;</span> git pull --ff-only
+git status                                       <span class="pl-c"><span class="pl-c">#</span> must be clean</span>
+cargo <span class="pl-c1">test</span> --all-features --locked               <span class="pl-c"><span class="pl-c">#</span> all unit + integration</span>
+cargo clippy --all-targets --all-features -- -D warnings
+cargo fmt --all -- --check
+./target/release/coderef doctor <span class="pl-c1">.</span>                <span class="pl-c"><span class="pl-c">#</span> 0 errors</span>
+./target/release/coderef check <span class="pl-c1">.</span>                 <span class="pl-c"><span class="pl-c">#</span> 0 broken</span></pre></div>
+<p dir="auto">Make sure every package agrees on the version:</p>
+<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate">grep -rn <span class="pl-s"><span class="pl-pds">'</span>"version": "[0-9]<span class="pl-pds">'</span></span> --include=<span class="pl-s"><span class="pl-pds">'</span>package.json<span class="pl-pds">'</span></span> <span class="pl-c1">.</span>
+grep -n <span class="pl-s"><span class="pl-pds">'</span>version    = "[0-9]<span class="pl-pds">'</span></span> Cargo.toml
+grep -n <span class="pl-s"><span class="pl-pds">'</span>html_root_url<span class="pl-pds">'</span></span> crates/coderef-core/src/lib.rs</pre></div>
+<p dir="auto">All five should show the same <code class="notranslate">MAJOR.MINOR.PATCH</code> (no trailing <code class="notranslate">-rc</code><br>
+unless this is a pre-release).</p>
+<h2 dir="auto" id="1-github-release-cli-binaries">1. GitHub Release (CLI binaries)</h2>
+<p dir="auto">Triggers the cross-build in <code class="notranslate">.github/workflows/release.yml</code>. Produces<br>
+the four platform tarballs the npm wrapper downloads at install time.</p>
+<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate">git tag v0.5.0 -m <span class="pl-s"><span class="pl-pds">"</span>coderef v0.5.0<span class="pl-pds">"</span></span>
+git push origin v0.5.0</pre></div>
+<p dir="auto">Then watch <code class="notranslate">gh run watch --branch v0.5.0</code> until the <code class="notranslate">release</code> job<br>
+shows green. Verify:</p>
+<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate">gh release view v0.5.0 --json assets --jq <span class="pl-s"><span class="pl-pds">'</span>.assets[].name<span class="pl-pds">'</span></span></pre></div>
+<p dir="auto">Expect 8 entries (4 platforms × 2 files: archive + <code class="notranslate">.sha256</code>).</p>
+<h2 dir="auto" id="2-npm-wrapper">2. npm wrapper</h2>
+<p dir="auto">Automated by <code class="notranslate">.github/workflows/npm_publish.yml</code>. The workflow fires<br>
+on the same tag push that drives step 1 and waits (polls up to 30<br>
+minutes) for release.yml to create the GitHub Release with assets<br>
+before calling <code class="notranslate">npm publish</code>. There's no window where the wrapper<br>
+exists on npm but the binaries it tries to download don't.</p>
+<p dir="auto">(We originally wired this on <code class="notranslate">release: types: [published]</code>, but<br>
+that event is suppressed by GitHub Actions when the originating<br>
+<code class="notranslate">gh release create</code> ran with the workflow's built-in <code class="notranslate">GITHUB_TOKEN</code><br>
+— an anti-recursion safeguard. The tag-push trigger + wait loop<br>
+avoids that gotcha without needing a separate PAT.)</p>
+<h3 dir="auto" id="one-time-setup">One-time setup</h3>
+<ol dir="auto">
+<li><strong>npm account + scope</strong>: sign up at npmjs.com with username<br>
+<code class="notranslate">helly25</code> (auto-creates the <code class="notranslate">@helly25</code> scope under which<br>
+<code class="notranslate">@helly25/coderef</code> lives).</li>
+<li><strong>2FA</strong>: enable on the publisher account with mode<br>
+<strong><code class="notranslate">Auth Only</code></strong> — the CI token then bypasses interactive OTP<br>
+for automation. (Auth-and-Writes mode forces OTP prompts and<br>
+won't work in CI.)</li>
+<li><strong>Mint the token</strong>: Profile → Access Tokens → Generate New<br>
+Token → <strong>Granular Access Token</strong>. Permission: <strong>Read and<br>
+write</strong>. Packages and scopes: <strong><code class="notranslate">@helly25</code></strong>. Expiration: your<br>
+rotation horizon (365d is a reasonable default). Copy the<br>
+token immediately — npm shows it once.</li>
+<li><strong>Store as repo secret</strong>: GitHub → repo → Settings → Secrets<br>
+and variables → Actions → New repository secret. Name<br>
+<code class="notranslate">NPM_TOKEN</code>, value the token.</li>
+</ol>
+<h3 dir="auto" id="per-release-flow">Per-release flow</h3>
+<p dir="auto">The workflow runs automatically on the GitHub Release-published<br>
+event from step 1 — no extra action needed for normal releases.<br>
+Watch progress at<br>
+<code class="notranslate">https://github.com/helly25/coderef/actions/workflows/npm_publish.yml</code>.</p>
+<p dir="auto">For ad-hoc / retro-publish (e.g. a tag pushed before this workflow<br>
+existed, or a re-publish after a transient registry failure):</p>
+<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate">gh workflow run npm_publish.yml -f tag=v<span class="pl-k">&lt;</span>X.Y.Z<span class="pl-k">&gt;</span>
+gh run watch                                     <span class="pl-c"><span class="pl-c">#</span> follow the run</span></pre></div>
+<p dir="auto">Verify on npm:</p>
+<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate">npm view @helly25/coderef version</pre></div>
+<h3 dir="auto" id="manual-fallback">Manual fallback</h3>
+<p dir="auto">If the workflow is broken and you need to publish from a local<br>
+machine, the <code class="notranslate">NPM_TOKEN</code> is in keychain on the publisher's box;<br>
+retrieve and use it for a one-off:</p>
+<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate"><span class="pl-k">export</span> NODE_AUTH_TOKEN=<span class="pl-s"><span class="pl-pds">$(</span>security find-generic-password -a <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$USER</span><span class="pl-pds">"</span></span> -s NPM_TOKEN -w<span class="pl-pds">)</span></span>
+<span class="pl-c1">cd</span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$REPO_ROOT</span>/npm/coderef<span class="pl-pds">"</span></span>
+<span class="pl-c1">echo</span> <span class="pl-s"><span class="pl-pds">"</span>//registry.npmjs.org/:_authToken=<span class="pl-smi">$NODE_AUTH_TOKEN</span><span class="pl-pds">"</span></span> <span class="pl-k">&gt;</span> <span class="pl-k">~</span>/.npmrc
+npm publish --access public
+rm <span class="pl-k">~</span>/.npmrc                                      <span class="pl-c"><span class="pl-c">#</span> don't leave it lying around</span></pre></div>
+<p dir="auto">Test the install against the local checkout first if you want a<br>
+dry run:</p>
+<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate"><span class="pl-c1">cd</span> /tmp <span class="pl-k">&amp;&amp;</span> rm -rf coderef-npm-test <span class="pl-k">&amp;&amp;</span> mkdir coderef-npm-test
+<span class="pl-c1">cd</span> coderef-npm-test <span class="pl-k">&amp;&amp;</span> npm init -y <span class="pl-k">&gt;</span>/dev/null
+npm install --no-audit --no-fund <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$REPO_ROOT</span>/npm/coderef<span class="pl-pds">"</span></span>
+./node_modules/.bin/coderef --version            <span class="pl-c"><span class="pl-c">#</span> must print engine version</span></pre></div>
+<h2 dir="auto" id="3-vscode-marketplace-extension-vsix">3. VSCode marketplace (extension VSIX)</h2>
+<p dir="auto">Automated by <code class="notranslate">.github/workflows/vscode_marketplace.yml</code>. The workflow fires<br>
+on the same tag push that drives step 1, builds the VSIX in CI (Rust</p>
+<ul dir="auto">
+<li>wasm32 + wasm-pack + Node), uploads it as a downloadable artifact,<br>
+and calls <code class="notranslate">vsce publish</code> using the <code class="notranslate">VSCE_PAT</code> repo secret. This<br>
+channel is independent of step 1 — the VSIX bundles its own WASM<br>
+via <code class="notranslate">scripts/bundle-wasm.cjs</code>.</li>
+</ul>
+<h3 dir="auto" id="one-time-setup-1">One-time setup</h3>
+<ol dir="auto">
+<li><strong>Mint the PAT</strong>: <a href="https://dev.azure.com" rel="nofollow">https://dev.azure.com</a> → User Settings → Personal<br>
+Access Tokens → New Token. Organization: <strong>All accessible<br>
+organizations</strong>. Scopes: <strong>Custom defined → Marketplace → Manage</strong><br>
+(nothing else — least privilege).</li>
+<li><strong>Store as repo secret</strong>: GitHub → repo → Settings → Secrets and<br>
+variables → Actions → New repository secret. Name <code class="notranslate">VSCE_PAT</code>,<br>
+value is the token. Once stored, GitHub redacts it from all logs.</li>
+</ol>
+<h3 dir="auto" id="per-release-flow-1">Per-release flow</h3>
+<p dir="auto">The workflow runs automatically on the tag push from step 1 — no<br>
+extra action needed for normal releases. Watch progress at<br>
+<code class="notranslate">https://github.com/helly25/coderef/actions/workflows/vscode_marketplace.yml</code>.</p>
+<p dir="auto">For ad-hoc / retro-publish (e.g. a tag pushed before this workflow<br>
+existed, or a re-publish after a marketplace-side issue), trigger<br>
+via <code class="notranslate">workflow_dispatch</code>:</p>
+<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate">gh workflow run vscode_marketplace.yml -f tag=v<span class="pl-k">&lt;</span>X.Y.Z<span class="pl-k">&gt;</span>
+gh run watch                                     <span class="pl-c"><span class="pl-c">#</span> follow the run</span></pre></div>
+<p dir="auto">Verify on the marketplace:</p>
+<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate">npx vsce show helly25.coderef --json <span class="pl-k">|</span> jq <span class="pl-s"><span class="pl-pds">'</span>.versions[0]<span class="pl-pds">'</span></span></pre></div>
+<h3 dir="auto" id="manual-fallback-1">Manual fallback</h3>
+<p dir="auto">If the workflow is broken and you need to publish from a local<br>
+machine:</p>
+<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate"><span class="pl-k">export</span> VSCE_PAT=<span class="pl-s"><span class="pl-pds">$(</span>security find-generic-password -a <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$USER</span><span class="pl-pds">"</span></span> -s VSCE_PAT -w<span class="pl-pds">)</span></span>
+<span class="pl-c1">cd</span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$REPO_ROOT</span>/extension<span class="pl-pds">"</span></span>
+npm install --no-audit --no-fund
+npm run package                                  <span class="pl-c"><span class="pl-c">#</span> produces coderef-&lt;ver&gt;.vsix</span>
+ls -la coderef-<span class="pl-k">*</span>.vsix
+npx vsce publish --packagePath coderef-<span class="pl-k">&lt;</span>ver<span class="pl-k">&gt;</span>.vsix</pre></div>
+<p dir="auto">Note: <code class="notranslate">npm run package</code> calls <code class="notranslate">scripts/bundle-wasm.cjs</code>, which<br>
+requires <code class="notranslate">rustup</code>-managed <code class="notranslate">rustc</code> with <code class="notranslate">wasm32-unknown-unknown</code> on<br>
+<code class="notranslate">$PATH</code>. If <code class="notranslate">which rustc</code> resolves to a brew-managed binary, the<br>
+build will fail; either <code class="notranslate">brew unlink rust</code> or prepend the rustup<br>
+toolchain bin:</p>
+<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate"><span class="pl-k">export</span> PATH=<span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$HOME</span>/.rustup/toolchains/<span class="pl-s"><span class="pl-pds">$(</span>rustup show active-toolchain <span class="pl-k">|</span> awk <span class="pl-s"><span class="pl-pds">'</span>{print $1}<span class="pl-pds">'</span></span><span class="pl-pds">)</span></span>/bin:<span class="pl-smi">$PATH</span><span class="pl-pds">"</span></span></pre></div>
+<h2 dir="auto" id="tag--publish-window-minutes-not-hours">Tag → publish window: minutes, not hours</h2>
+<p dir="auto">The npm wrapper's install fetches <code class="notranslate">https://github.com/helly25/coderef/releases/download/v&lt;X&gt;/...</code>.<br>
+If npm publishes before the GitHub Release is fully populated,<br>
+<code class="notranslate">npm install -g @helly25/coderef@&lt;X&gt;</code> fails with a 404 download error<br>
+until the assets land. Don't let users hit that window — finish all<br>
+three channels in one sitting, or hold off on the npm publish until<br>
+step 1's release page is fully populated.</p>
+<h2 dir="auto" id="rollback">Rollback</h2>
+<ul dir="auto">
+<li><strong>GitHub Release</strong>: <code class="notranslate">gh release delete v&lt;X&gt;</code> + <code class="notranslate">git tag -d v&lt;X&gt; &amp;&amp; git push --delete origin v&lt;X&gt;</code>.</li>
+<li><strong>npm</strong>: a published version is permanent (npm rejects republishing<br>
+the same number). Use <code class="notranslate">npm deprecate '@helly25/coderef@&lt;X&gt;' "reason"</code><br>
+and publish a patch with the fix.</li>
+<li><strong>VSCode marketplace</strong>: <code class="notranslate">vsce unpublish helly25.coderef@&lt;X&gt;</code> works<br>
+but is visible in the extension's history.</li>
+</ul>
+<h2 dir="auto" id="pre-release--rc">Pre-release / rc</h2>
+<p dir="auto">For a release candidate, use the SemVer pre-release form: tag as<br>
+<code class="notranslate">v0.2.0-rc1</code>, bump all five <code class="notranslate">version</code> fields to <code class="notranslate">0.2.0-rc.1</code> (note<br>
+the <code class="notranslate">.</code> before the number for npm/SemVer; Cargo accepts both). Test<br>
+publish to a private npm scope or skip npm entirely for rcs.</p></main><footer>Release snapshot · 0eb7e44fcf145f41f78040601a18e3e9764a960e</footer></body></html>

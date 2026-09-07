@@ -1,0 +1,25 @@
+{
+  "pages": {
+    "README.md": "index.html",
+    "CHANGELOG.md": "CHANGELOG.html",
+    "docs/README.md": "docs/README.html",
+    "docs/release.md": "docs/release.html",
+    "docs/test-plan.md": "docs/test-plan.html",
+    "extension/README.md": "extension/README.html",
+    "npm/coderef/README.md": "npm/coderef/README.html",
+    "schema/README.md": "schema/README.html",
+    "DESIGN.md": "DESIGN.html",
+    "AGENTS.md": "AGENTS.html",
+    "CLAUDE.md": "CLAUDE.html",
+    "extension/CHANGELOG.md": "extension/CHANGELOG.html"
+  },
+  "links": [
+    {
+      "label": "JSON Schema v1",
+      "href": "/{repo}/site/tag/{tag}/schema/v1.json"
+    }
+  ],
+  "files": {
+    "schema/coderef.schema.json": "schema/v1.json"
+  }
+}

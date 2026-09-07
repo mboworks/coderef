@@ -1,0 +1,453 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CHANGELOG.md - coderef v0.5.0</title><style>
+:root { color-scheme: light dark; font: 17px/1.6 system-ui, sans-serif; }
+body { max-width: 76rem; margin: auto; padding: 2rem; }
+a { color: light-dark(#075da8, #8cc8ff); }
+nav { display: flex; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid #888; }
+pre { padding: 1rem; overflow: auto; background: light-dark(#f3f5f7, #20252b); }
+code { font-size: .9em; } img { max-width: 100%; }
+table { display: block; overflow: auto; border-collapse: collapse; }
+th, td { border: 1px solid #888; padding: .4rem .7rem; }
+blockquote { border-left: 4px solid #888; margin-left: 0; padding-left: 1rem; }
+</style><body><nav><a href="/coderef/site/tag/v0.5.0/">Home</a><a href="/coderef/site/tag/v0.5.0/documents.html">Documentation</a><a href="https://github.com/mboworks/coderef/releases/tag/v0.5.0">Release &amp; downloads</a><a href="https://github.com/mboworks/coderef/tree/0eb7e44fcf145f41f78040601a18e3e9764a960e">Source</a><a href="/coderef/site/tag/v0.5.0/schema/v1.json">JSON Schema v1</a></nav><p>coderef v0.5.0</p><main><h1 dir="auto" id="changelog">Changelog</h1>
+<p dir="auto">All notable changes to coderef are recorded here.</p>
+<p dir="auto">The format follows <a href="https://keepachangelog.com/en/1.1.0/" rel="nofollow">Keep a Changelog</a>;<br>
+versions follow <a href="https://semver.org/spec/v2.0.0.html" rel="nofollow">SemVer</a>.</p>
+<h2 dir="auto" id="unreleased">Unreleased</h2>
+<h2 dir="auto" id="v050--2026-06-18">v0.5.0 — 2026-06-18</h2>
+<h3 dir="auto" id="highlights">Highlights</h3>
+<ul dir="auto">
+<li><strong>Per-pattern <code class="notranslate">patterns.&lt;id&gt;.label</code> config</strong> + <code class="notranslate">label.orphanOpen</code><br>
+/ <code class="notranslate">label.orphanClose</code> doctor diagnostics (<a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4690924121" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/68" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/68/hovercard" href="https://github.com/mboworks/coderef/pull/68">#68</a>) — <code class="notranslate">kind: "ifchange"</code> patterns can now declare a compat-form open/close<br>
+marker pair (e.g. <code class="notranslate">BEGIN_BLOCK(id)</code> / <code class="notranslate">END_BLOCK</code>) the parser<br>
+recognises alongside the canonical <code class="notranslate">IfChange</code>/<code class="notranslate">ThenChange</code> and<br>
+the global <code class="notranslate">Label</code>/<code class="notranslate">EndLabel</code>. Two new compat-only doctor<br>
+checks fire on stray open/close markers when at least one<br>
+pattern opts in.</li>
+<li><strong>References-browser <code class="notranslate">Drifted</code> filter</strong> (<a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4691036555" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/69" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/69/hovercard" href="https://github.com/mboworks/coderef/pull/69">#69</a>) — third filter<br>
+mode joins <code class="notranslate">all</code> / <code class="notranslate">mine</code>. Surfaces ifchange refs whose<br>
+enclosing IfChange/Label region in the same file is unbalanced.<br>
+The full DESIGN §10.14 checksum-drift backend remains<br>
+post-v0.4 backlog; this ship exposes the parse-time orphan<br>
+signal via a TS-side single-pass scanner — no new wasm<br>
+exports, no CLI subprocess.</li>
+</ul>
+<h3 dir="auto" id="workspace-stats">Workspace stats</h3>
+<ul dir="auto">
+<li>Extension TS test count grew 55 → 66 (Drifted filter: 14 new<br>
+tests for <code class="notranslate">computeOrphanLines</code> + <code class="notranslate">isReferenceDrifted</code> + the<br>
+<code class="notranslate">setFilterCommand</code> drifted-mode quick-pick).</li>
+<li>Rust test count grew (34 → 38 doctor-pipeline integration<br>
+tests for the new <code class="notranslate">label.orphanOpen</code> / <code class="notranslate">label.orphanClose</code><br>
+diagnostics; existing <code class="notranslate">OrphanIfChange</code>/<code class="notranslate">OrphanThenChange</code> test<br>
+expectations updated for the split into four variants).</li>
+<li>Two new <code class="notranslate">MarkerParseError</code> variants (<code class="notranslate">OrphanLabel</code>,<br>
+<code class="notranslate">OrphanEndLabel</code>) — pre-1.0 coderef-core API; only internal<br>
+consumers (<code class="notranslate">coderef-cli</code>, <code class="notranslate">coderef-core-wasm</code>) updated in this<br>
+release cycle.</li>
+<li>2 PRs merged in this cycle (<a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4690924121" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/68" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/68/hovercard" href="https://github.com/mboworks/coderef/pull/68">#68</a> per-pattern label config /<br>
+orphans, <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4691036555" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/69" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/69/hovercard" href="https://github.com/mboworks/coderef/pull/69">#69</a> Drifted filter).</li>
+</ul>
+<h3 dir="auto" id="deferred--no-v05-backlog">Deferred — no v0.5 backlog</h3>
+<p dir="auto">v0.5 closes out the v0.4 deferral list. There's no enumerated<br>
+v0.6 backlog: DESIGN §20.5 explicitly leaves the post-v0.4<br>
+horizon open and waits for real-use signal before committing<br>
+further scope. Open candidates documented there (checksum-drift,<br>
+LSP server, JetBrains plugin, <code class="notranslate">extends:</code> mechanism, semantic<br>
+response filtering, CodeLens, …) are picked up case-by-case if<br>
+demand surfaces.</p>
+<h3 dir="auto" id="added">Added</h3>
+<ul dir="auto">
+<li><strong>Per-pattern <code class="notranslate">patterns.&lt;id&gt;.label</code> config</strong> (DESIGN §10.3).<br>
+Each <code class="notranslate">kind: "ifchange"</code> pattern can declare a compat-form<br>
+open/close marker pair (<code class="notranslate">label.open.regex</code> and<br>
+<code class="notranslate">label.close.regex</code>) that the parser recognises in addition<br>
+to the canonical <code class="notranslate">IfChange</code>/<code class="notranslate">ThenChange</code> and the global<br>
+<code class="notranslate">Label</code>/<code class="notranslate">EndLabel</code>. Useful for codebases mirroring<br>
+<code class="notranslate">ebrevdo/ifttt-lint</code> or other coupled-change tools with<br>
+different keyword spellings (e.g. <code class="notranslate">BEGIN_BLOCK(id)</code> /<br>
+<code class="notranslate">END_BLOCK</code>). Configurable per-pattern, but the marker<br>
+recognition is global at scan time — any pattern's configured<br>
+markers are tried against every file.</li>
+<li><strong><code class="notranslate">label.orphanOpen</code> / <code class="notranslate">label.orphanClose</code> doctor diagnostics</strong><br>
+(DESIGN §10.3). Compat-only — they fire ONLY when at least<br>
+one pattern has <code class="notranslate">label</code> configured. Catches stray compat-form<br>
+open markers (<code class="notranslate">Label(...)</code> or per-pattern open) with no<br>
+matching close, and vice versa. Default <code class="notranslate">Error</code>. The<br>
+canonical <code class="notranslate">IfChange</code> / <code class="notranslate">ThenChange</code> orphans keep firing as<br>
+<code class="notranslate">parse-error/orphan-ifchange</code> and<br>
+<code class="notranslate">parse-error/orphan-thenchange</code> via the existing path.</li>
+<li>Parser now tracks <code class="notranslate">MarkerForm::Canonical</code> vs<br>
+<code class="notranslate">MarkerForm::Compat</code> on every <code class="notranslate">IfChangeBlock</code> (hidden field —<br>
+doctor-internal). Used by the new orphan diagnostics to pick<br>
+the right Orphan* variant. Two new <code class="notranslate">MarkerParseError</code><br>
+variants (<code class="notranslate">OrphanLabel</code>, <code class="notranslate">OrphanEndLabel</code>) replace the<br>
+previous conflation with <code class="notranslate">OrphanIfChange</code> /<br>
+<code class="notranslate">OrphanThenChange</code> for compat-form orphans.</li>
+<li><strong>References-browser <code class="notranslate">Drifted</code> filter</strong> (DESIGN §14.7.4). The<br>
+<code class="notranslate">coderef.references.filter</code> setting / quick-pick gains a third<br>
+mode, <code class="notranslate">drifted</code>, alongside <code class="notranslate">all</code> and <code class="notranslate">mine</code>. With it active,<br>
+the tree shows only <code class="notranslate">kind: "ifchange"</code> references whose<br>
+enclosing IfChange/Label region in the same file is unbalanced<br>
+— an open marker with no matching close, or a stray close<br>
+with no open. Useful for "where are the ifchange markers that<br>
+the parser considers broken in this branch?". The full DESIGN<br>
+§10.14 checksum-drift backend remains post-v0.4 backlog; this<br>
+v0.5 surface exposes the parse-time orphan signal we already<br>
+have via a small TS-side single-pass scanner — no new wasm<br>
+exports, no CLI subprocess. 14 new unit tests in<br>
+<code class="notranslate">extension/src/referencesView.test.ts</code>.</li>
+</ul>
+<h2 dir="auto" id="v040--2026-06-18">v0.4.0 — 2026-06-18</h2>
+<h3 dir="auto" id="highlights-1">Highlights</h3>
+<ul dir="auto">
+<li><strong>References-browser Mine filter</strong> (<a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4669744179" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/66" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/66/hovercard" href="https://github.com/mboworks/coderef/pull/66">#66</a>) — workspace identity list
+<ul dir="auto">
+<li>per-ref substring match against matched text and capture<br>
+values; toggleable via the new <code class="notranslate">coderef.references.setFilter</code><br>
+palette command.</li>
+</ul>
+</li>
+<li><strong>Multi-target hover alternates</strong> (<a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4669658719" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/65" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/65/hovercard" href="https://github.com/mboworks/coderef/pull/65">#65</a>) — the HoverProvider lists<br>
+every other pattern that would also match the same <code class="notranslate">matched_text</code><br>
+with the alternate's resolved target as a clickable link.</li>
+</ul>
+<h3 dir="auto" id="workspace-stats-1">Workspace stats</h3>
+<ul dir="auto">
+<li>Extension TS test count grew from 45 → 55 (Mine: 7 new tests;<br>
+hover alternates: 3 new tests).</li>
+<li>2 PRs merged in this cycle (<a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4669658719" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/65" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/65/hovercard" href="https://github.com/mboworks/coderef/pull/65">#65</a> multi-target hover, <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4669744179" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/66" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/66/hovercard" href="https://github.com/mboworks/coderef/pull/66">#66</a> Mine<br>
+filter).</li>
+</ul>
+<h3 dir="auto" id="deferred-to-v05">Deferred to v0.5</h3>
+<ul dir="auto">
+<li><strong>Per-pattern <code class="notranslate">patterns.&lt;id&gt;.label</code> config</strong> + <code class="notranslate">label.orphanOpen</code><br>
+/ <code class="notranslate">label.orphanClose</code> compat-only doctor diagnostics (DESIGN<br>
+§10.3). Requires a parser refactor (build marker regex set from<br>
+pattern configs; track per-block marker provenance) plus a real<br>
+design call on per-pattern file scoping.</li>
+<li><strong>References-browser Drifted filter</strong> (DESIGN §14.7). Requires<br>
+either subprocess plumbing (<code class="notranslate">coderef check --report json</code> from<br>
+the extension — brings CLI-on-PATH dependency) or exposing the<br>
+verifier through WASM (no HTTP in WASM today). Both are<br>
+real-design items, not "ship the smallest cut" candidates.</li>
+</ul>
+<h3 dir="auto" id="added-1">Added</h3>
+<ul dir="auto">
+<li><strong>References-browser Mine filter</strong> (DESIGN §14.7 v0.3 deferred /<br>
+v0.4). New <code class="notranslate">coderef.references.filter</code> setting (<code class="notranslate">all</code> / <code class="notranslate">mine</code>,<br>
+default <code class="notranslate">all</code>) controls whether the tree shows every reference<br>
+or only those that match the user. Identity source is a workspace<br>
+array <code class="notranslate">coderef.references.mineIdentities</code>; a ref is "yours" if<br>
+its matched text or any capture value contains any listed<br>
+identifier (case-insensitive substring match). With an empty<br>
+<code class="notranslate">mineIdentities</code> array, Mine acts as a no-op (treats every ref<br>
+as yours) rather than emptying the tree — fewer foot-guns. New<br>
+<code class="notranslate">coderef.references.setFilter</code> palette command pops a quick-pick<br>
+and triggers an immediate rescan on selection.</li>
+<li><strong>Multi-target hover alternates</strong> in the VSCode extension's<br>
+<code class="notranslate">HoverProvider</code> (DESIGN §14.7). When hovering a reference the<br>
+popover now lists every <em>other</em> pattern that would also match the<br>
+same <code class="notranslate">matched_text</code>, with the alternate's resolved target as a<br>
+clickable link. Useful when one token is interpretable several<br>
+ways — e.g. a JIRA id matched both by a <code class="notranslate">jira</code> pattern (linking<br>
+to the tracker) and a generic ticket pattern (linking to a<br>
+dashboard). The primary target stays at the top of the popover<br>
+(driven by pattern priority via the cache); alternates appear<br>
+below in an <code class="notranslate">Alternative targets (N):</code> section.</li>
+<li><code class="notranslate">buildHoverMarkdown</code> (the pure renderer) gained an <code class="notranslate">alternates</code><br>
+parameter — backward-compatible (defaults to <code class="notranslate">[]</code>), so callers<br>
+that don't pass it see the same v0.2 single-target hover.</li>
+</ul>
+<h2 dir="auto" id="v030--2026-06-15">v0.3.0 — 2026-06-15</h2>
+<h3 dir="auto" id="highlights-2">Highlights</h3>
+<ul dir="auto">
+<li><strong>IfChange/ThenChange v0.3 surface complete</strong>: <code class="notranslate">Label('name') ... EndLabel</code> compat-form markers (<a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4668264182" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/54" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/54/hovercard" href="https://github.com/mboworks/coderef/pull/54">#54</a>), <code class="notranslate">{soft}</code> glob flag (<a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4668404083" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/55" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/55/hovercard" href="https://github.com/mboworks/coderef/pull/55">#55</a>),<br>
+strict <code class="notranslate">{all}</code> glob semantics with workspace enumeration (<a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4668810247" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/56" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/56/hovercard" href="https://github.com/mboworks/coderef/pull/56">#56</a>),<br>
+three new <code class="notranslate">label.*</code> doctor diagnostics (<a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4668903446" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/57" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/57/hovercard" href="https://github.com/mboworks/coderef/pull/57">#57</a>).</li>
+<li><strong>New doctor diagnostics</strong>: <code class="notranslate">commitMessage.requiredNeverFires</code><br>
+(<a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4668997409" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/58" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/58/hovercard" href="https://github.com/mboworks/coderef/pull/58">#58</a>, with <code class="notranslate">git log</code> corpus plumbed from the CLI),<br>
+<code class="notranslate">references.tooManyNodes</code> + <code class="notranslate">references.uncategorisedSpike</code><br>
+(<a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4669136557" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/61" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/61/hovercard" href="https://github.com/mboworks/coderef/pull/61">#61</a>).</li>
+<li><strong>References-browser polish</strong>: Copy-as-Markdown (<a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4669042173" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/59" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/59/hovercard" href="https://github.com/mboworks/coderef/pull/59">#59</a>),<br>
+exportJson (<a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4669093109" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/60" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/60/hovercard" href="https://github.com/mboworks/coderef/pull/60">#60</a>), <code class="notranslate">coderef.references.maxNodesPerLevel</code> cap<br>
+with truncation placeholder (<a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4669225252" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/62" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/62/hovercard" href="https://github.com/mboworks/coderef/pull/62">#62</a>), <code class="notranslate">scanMode</code> setting +<br>
+<code class="notranslate">setScanMode</code> palette command (<a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4669505650" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/63" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/63/hovercard" href="https://github.com/mboworks/coderef/pull/63">#63</a>).</li>
+</ul>
+<h3 dir="auto" id="workspace-stats-2">Workspace stats</h3>
+<ul dir="auto">
+<li>Test count grew from ~352 → <strong>~370</strong> (Rust workspace) + 28 → 45<br>
+extension TS unit tests.</li>
+<li>6 PRs merged in this cycle (<a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4668264182" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/54" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/54/hovercard" href="https://github.com/mboworks/coderef/pull/54">#54</a>–<a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4668404083" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/55" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/55/hovercard" href="https://github.com/mboworks/coderef/pull/55">#55</a>, <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4668810247" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/56" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/56/hovercard" href="https://github.com/mboworks/coderef/pull/56">#56</a>, <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4668903446" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/57" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/57/hovercard" href="https://github.com/mboworks/coderef/pull/57">#57</a>, <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4668997409" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/58" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/58/hovercard" href="https://github.com/mboworks/coderef/pull/58">#58</a>, <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4669042173" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/59" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/59/hovercard" href="https://github.com/mboworks/coderef/pull/59">#59</a>, <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4669093109" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/60" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/60/hovercard" href="https://github.com/mboworks/coderef/pull/60">#60</a>,<br>
+<a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4669136557" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/61" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/61/hovercard" href="https://github.com/mboworks/coderef/pull/61">#61</a>, <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4669225252" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/62" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/62/hovercard" href="https://github.com/mboworks/coderef/pull/62">#62</a>, <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4669505650" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/63" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/63/hovercard" href="https://github.com/mboworks/coderef/pull/63">#63</a>).</li>
+</ul>
+<h3 dir="auto" id="deferred-to-v04">Deferred to v0.4</h3>
+<ul dir="auto">
+<li>Per-pattern <code class="notranslate">patterns.&lt;id&gt;.label</code> config + <code class="notranslate">label.orphanOpen</code> /<br>
+<code class="notranslate">label.orphanClose</code> compat-only doctor diagnostics (DESIGN<br>
+§10.3). Needs a design decision on per-pattern file-scoping vs<br>
+workspace-wide opt-in before the parser refactor is justified.</li>
+<li>References-browser Mine / Drifted filters (DESIGN §14.7). Mine<br>
+needs an identity source (git config vs config-listed<br>
+identifiers); Drifted needs verifier-output plumbing.</li>
+<li>Multi-target hover alternates in the extension's HoverProvider.</li>
+</ul>
+<h3 dir="auto" id="added-2">Added</h3>
+<ul dir="auto">
+<li><strong>References-browser scan modes + setScanMode command</strong> (DESIGN<br>
+§14.7). New <code class="notranslate">coderef.references.scanMode</code> setting controls which<br>
+files the references browser walks on refresh: <code class="notranslate">workspace</code><br>
+(default — every in-scope file honouring .gitignore + config<br>
+<code class="notranslate">ignore[]</code>), <code class="notranslate">openFiles</code> (only currently-open TextDocuments), or<br>
+<code class="notranslate">currentFile</code> (only the active editor's file). New<br>
+<code class="notranslate">coderef.references.setScanMode</code> palette command pops a<br>
+quick-pick with descriptions per mode, persists the choice to<br>
+workspace (or user-global) settings, and triggers an immediate<br>
+rescan. Useful on very large repos where scanning everything is<br>
+the slow path.</li>
+<li><strong><code class="notranslate">coderef.references.maxNodesPerLevel</code> setting + tree truncation<br>
+placeholder</strong> (DESIGN §14.7.3). The references browser now honours<br>
+a per-workspace cap (default <code class="notranslate">1000</code>, min <code class="notranslate">10</code>) on the number of<br>
+nodes shown at any level — per-category file list, per-file leaf<br>
+list. Levels exceeding the cap render the first N entries and an<br>
+ellipsis-icon <code class="notranslate">…and X more (cap: N, set coderef.references.maxNodesPerLevel to raise)</code> placeholder. Pairs<br>
+with the <code class="notranslate">references.tooManyNodes</code> doctor diagnostic (also v0.3)<br>
+so very large levels are flagged ahead of viewing the tree.</li>
+<li><strong><code class="notranslate">references.tooManyNodes</code> + <code class="notranslate">references.uncategorisedSpike</code><br>
+doctor diagnostics</strong> (DESIGN §14.7.3). Two new scan-dependent<br>
+Info-severity checks for the references-browser tree.<br>
+<code class="notranslate">references.tooManyNodes</code> fires when any pattern matches more<br>
+than 1000 references workspace-wide, or any single file contains<br>
+more than 1000 references — both signal that the references<br>
+browser will truncate the corresponding tree branch and a more<br>
+granular grouping is in order. <code class="notranslate">references.uncategorisedSpike</code><br>
+fires when more than 10% of references land in the <code class="notranslate">other</code><br>
+fallback category — suggests declaring <code class="notranslate">category</code> explicitly on<br>
+more patterns.</li>
+<li><strong>References-browser exportJson command</strong> (DESIGN §14.7 v0.3 long<br>
+tail). New <code class="notranslate">coderef.references.exportJson</code> command pops a save<br>
+dialog and writes the current reference set to disk as a stable<br>
+schema-versioned JSON document. Schema <code class="notranslate">1</code> includes a header<br>
+(generated_at, engine version, totals) plus one entry per<br>
+reference with its resolved category baked in, so downstream<br>
+tooling can group/filter without re-reading the config. Entries<br>
+are sorted by <code class="notranslate">(file, byte_start)</code> so the output is diffable<br>
+across runs. Surfaced as a save-as-icon button in the<br>
+references-browser view title bar (between the Copy-as-Markdown<br>
+and Refresh icons).</li>
+<li><strong>References-browser Copy-as-Markdown command</strong> (DESIGN §14.7 v0.3<br>
+long tail). New <code class="notranslate">coderef.references.copyAsMarkdown</code> command shows<br>
+up as a clippy-icon button in the references-browser view title<br>
+bar. Click it (or run from the command palette) and the current<br>
+reference set lands in your clipboard as a category-grouped<br>
+Markdown document, suitable for pasting into a PR description, a<br>
+design doc, a ticket comment — anywhere the team is already<br>
+reading Markdown. Format: one section per category (display-order<br>
+sorted), each section subdivided per file, each file as a bullet<br>
+list of <code class="notranslate">path:line</code> — <code class="notranslate">[pattern] matched-text</code> → target lines.<br>
+Backticks in matched text are escaped so the inline-code spans<br>
+don't break.</li>
+<li><strong><code class="notranslate">commitMessage.requiredNeverFires</code> doctor diagnostic</strong> (DESIGN<br>
+§16.1.1). A pattern declared <code class="notranslate">scope.commitMessage: "required"</code><br>
+whose regex doesn't match any commit in the host-supplied corpus<br>
+is flagged at <code class="notranslate">Warning</code> severity. <code class="notranslate">coderef doctor</code> now walks<br>
+<code class="notranslate">git log -n 200 --format=%B</code> (NUL-separated bodies) and feeds the<br>
+result to a new<br>
+<code class="notranslate">run_doctor_with_workspace_and_commit_corpus(root, cfg, msgs)</code><br>
+entry point in <code class="notranslate">coderef-core</code>. The original<br>
+<code class="notranslate">run_doctor_with_workspace(root, cfg)</code> stays as a 2-arg backward-<br>
+compatible alias that passes <code class="notranslate">None</code> for the corpus. With no<br>
+corpus (host couldn't reach git, not a repo, or the log is<br>
+genuinely empty), the check is silently skipped rather than<br>
+flagging every required pattern as never-fired.</li>
+<li><strong><code class="notranslate">label.*</code> doctor diagnostics</strong> (DESIGN §10.3). Three new<br>
+scan-dependent checks fire when at least one <code class="notranslate">kind: "ifchange"</code><br>
+pattern is configured: <code class="notranslate">label.duplicateInFile</code> (Error — two labelled<br>
+regions in the same file share an id; resolution is<br>
+non-deterministic), <code class="notranslate">label.unused</code> (Info advisory — labelled region<br>
+with no peer block and no <code class="notranslate">ThenChange(path:label-name)</code> reference),<br>
+and <code class="notranslate">label.ambiguousName</code> (Error — name is purely numeric or matches<br>
+<code class="notranslate">N-M</code>, colliding with line/range parsing in <code class="notranslate">ThenChange(path:line)</code><br>
+targets). The remaining DESIGN §10.3 diagnostics<br>
+(<code class="notranslate">label.orphanOpen</code>/<code class="notranslate">Close</code>) are explicitly compat-only and pair<br>
+with the per-pattern <code class="notranslate">patterns.&lt;id&gt;.label</code> config in a follow-up<br>
+PR.</li>
+<li><strong>Strict <code class="notranslate">{all}</code> glob semantics</strong> in <code class="notranslate">ThenChange</code> (DESIGN §10.2).<br>
+<code class="notranslate">IfChange ... ThenChange(/docs/*.md{all})</code> now enforces that <em>every</em><br>
+workspace file matching the glob is touched by the diff, not just<br>
+"at least one" as the v0.2-shipped lax semantics required. Powered<br>
+by a new <code class="notranslate">enumerate_workspace_files</code> helper in <code class="notranslate">coderef-core</code> plus<br>
+a new <code class="notranslate">workspace_files: Option&lt;&amp;[String]&gt;</code> parameter on<br>
+<code class="notranslate">verify_changes_composable</code>. The CLI's <code class="notranslate">coderef changes</code> walks<br>
+the workspace with the same <code class="notranslate">.gitignore</code> + config <code class="notranslate">ignore[]</code><br>
+semantics that block-scanning uses, so the file universe stays<br>
+consistent. Callers without a workspace handy (WASM in-editor<br>
+path, isolated unit tests) pass <code class="notranslate">None</code> and <code class="notranslate">{all}</code> falls back to<br>
+the lax v0.2 any-mode behaviour. Empty match set is a vacuous<br>
+pass — a stale-glob doctor check is the right surface for that,<br>
+not a coupled-change violation.</li>
+<li><strong><code class="notranslate">{soft}</code> glob flag</strong> on <code class="notranslate">ThenChange</code> glob targets (DESIGN §10.2<br>
+severity modifier). A <code class="notranslate">ThenChange(/docs/*.md{soft})</code> target whose<br>
+matched-and-changed count is zero still surfaces a violation, but<br>
+with <code class="notranslate">Severity::Warning</code> — <code class="notranslate">ChangesReport::passed()</code> ignores<br>
+warnings, so <code class="notranslate">coderef changes</code> exits 0. The flag is comma-combinable<br>
+with the existing <code class="notranslate">{any}</code> / <code class="notranslate">{all}</code> mode flags: <code class="notranslate">{soft,all}</code> (and<br>
+<code class="notranslate">{all,soft}</code>) mean "every matched file should change, but if not,<br>
+warn rather than fail". The previous single-flag-only parser is<br>
+generalised to a comma-separated flag set inside the braces.</li>
+<li><code class="notranslate">GlobFlag</code> enum split into <code class="notranslate">GlobMode { Any, All }</code> (mutually<br>
+exclusive match-mode) and <code class="notranslate">GlobFlags { mode, soft }</code> (struct that<br>
+groups the mode with the orthogonal <code class="notranslate">soft</code> severity bit). All<br>
+<code class="notranslate">Target::FileGlob</code> sites now carry <code class="notranslate">flags: GlobFlags</code> instead of<br>
+<code class="notranslate">flag: GlobFlag</code>. <code class="notranslate">format_target</code> omits the brace suffix entirely<br>
+when the flags are at their default (any-mode, not soft) so<br>
+violation messages don't sprout a redundant <code class="notranslate">{any}</code> on every<br>
+default glob.</li>
+<li><code class="notranslate">Violation</code> and <code class="notranslate">ViolationReport</code> carry a <code class="notranslate">severity: Severity</code><br>
+field. JSON consumers that ignore unknown fields keep working<br>
+(additive change); consumers that depend on <code class="notranslate">severity</code> get<br>
+<code class="notranslate">"warning"</code> for soft glob misses and <code class="notranslate">"error"</code> for everything<br>
+else.</li>
+<li>CLI <code class="notranslate">coderef changes --report text</code> prefixes warning violations<br>
+with <code class="notranslate">[warn/missing-target]</code> instead of the plain<br>
+<code class="notranslate">[missing-target]</code>; the trailing summary line splits <code class="notranslate">violation(s)</code><br>
+into <code class="notranslate">error(s)</code> and <code class="notranslate">warning(s)</code> so the reader can see at a glance<br>
+whether the run failed because of a hard mismatch or only flagged<br>
+soft ones.</li>
+<li><code class="notranslate">split_targets</code> (the comma-splitter for the <code class="notranslate">ThenChange(...)</code> arg<br>
+list) now respects <code class="notranslate">{...}</code> brace boundaries — commas inside a<br>
+flag set don't split into separate targets.</li>
+<li><strong><code class="notranslate">Label('name') ... EndLabel</code> marker recognition</strong> in the IfChange<br>
+block parser (DESIGN §10.2 / §10.3 compat form). The compat markers<br>
+are now parsed as alternative open/close pairs alongside the<br>
+canonical <code class="notranslate">IfChange / ThenChange</code> — they produce the same internal<br>
+<code class="notranslate">IfChangeBlock</code> representation with the captured id, so a<br>
+<code class="notranslate">ThenChange(path:label-name)</code> elsewhere can target either form's<br>
+labelled region. Cross-form pairing is allowed<br>
+(<code class="notranslate">Label('foo') ... ThenChange(targets)</code>, <code class="notranslate">IfChange('bar') ... EndLabel</code>)<br>
+so codebases mid-migration aren't forced into one spelling. Per-pattern<br>
+config (DESIGN §10.3 <code class="notranslate">patterns.&lt;id&gt;.label</code>) and the<br>
+<code class="notranslate">label.*</code> doctor diagnostics (orphanOpen, orphanClose, duplicateInFile,<br>
+unused, ambiguousName) remain v0.3+ work — this PR ships the parser<br>
+recognition only.</li>
+</ul>
+<h3 dir="auto" id="changed">Changed</h3>
+<ul dir="auto">
+<li><strong><code class="notranslate">npm_publish.yml</code> workflow now triggers on tag push</strong> instead of<br>
+the previously-used <code class="notranslate">release: types: [published]</code> event. The former<br>
+shape never fired because GitHub Actions suppresses workflows<br>
+triggered by events caused by a workflow's own <code class="notranslate">GITHUB_TOKEN</code><br>
+(anti-recursion). The new shape adds a poll-and-wait step that<br>
+blocks up to 30 minutes for <code class="notranslate">release.yml</code> to finish building and<br>
+creating the GitHub Release, then publishes. Effect for releasers:<br>
+pushing <code class="notranslate">vX.Y.Z</code> now fires all three channels (GitHub Release, npm,<br>
+VSCode Marketplace) zero-touch — no manual <code class="notranslate">gh workflow run</code> for<br>
+npm anymore.</li>
+</ul>
+<h2 dir="auto" id="v022--2026-06-14">v0.2.2 — 2026-06-14</h2>
+<h3 dir="auto" id="fixed">Fixed</h3>
+<ul dir="auto">
+<li><strong>npm wrapper <code class="notranslate">install.js</code> no longer copies a script as if it were a<br>
+binary</strong>, fixing the infinite-recursion silent hang where the second<br>
+<code class="notranslate">npm install -g @helly25/coderef</code> after a v0.2.1 install would copy<br>
+the npm shim left by the prior install (a <code class="notranslate">#!/usr/bin/env node</code><br>
+script) into <code class="notranslate">bin/coderef</code>, so the wrapper spawned itself<br>
+recursively. <code class="notranslate">install.js</code> now sniffs the magic bytes of any candidate<br>
+before copying — accepts ELF, Mach-O single-arch, Mach-O Universal<br>
+(<code class="notranslate">CA FE BA BE</code>, what <code class="notranslate">lipo</code> produces and what <code class="notranslate">/bin/ls</code> is on macOS),<br>
+and PE; rejects anything beginning with <code class="notranslate">#!</code>.</li>
+</ul>
+<h2 dir="auto" id="v021--2026-06-14">v0.2.1 — 2026-06-14</h2>
+<h3 dir="auto" id="highlights-3">Highlights</h3>
+<ul dir="auto">
+<li><strong><code class="notranslate">kind: "block"</code></strong> — source-level <code class="notranslate">DO NOT COMMIT</code> / <code class="notranslate">NOCOMMIT</code> /<br>
+<code class="notranslate">DONOTMERGE</code> guards. The match itself is the diagnostic; <code class="notranslate">coderef check</code> exits 1 on the first hit, blocking the pre-commit hook<br>
+(PR <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4619398581" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/26" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/26/hovercard" href="https://github.com/mboworks/coderef/pull/26">#26</a>).</li>
+<li><strong>Pattern categories (DESIGN §5.7)</strong> — <code class="notranslate">files</code> / <code class="notranslate">people</code> / <code class="notranslate">tickets</code><br>
+/ <code class="notranslate">standards</code> / <code class="notranslate">urls</code> / <code class="notranslate">coupled-change</code> / <code class="notranslate">other</code> + user-defined.<br>
+Doctor surfaces <code class="notranslate">category.unset</code>, <code class="notranslate">category.tooBroadOther</code>, and<br>
+scan-dependent <code class="notranslate">category.mismatch</code>. <code class="notranslate">coderef patterns --by-category</code><br>
+groups in DESIGN-order display (PR <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4645022084" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/28" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/28/hovercard" href="https://github.com/mboworks/coderef/pull/28">#28</a>, <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4658801444" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/41" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/41/hovercard" href="https://github.com/mboworks/coderef/pull/41">#41</a>).</li>
+<li><strong>Markdown anchor verification (DESIGN §6.3)</strong> — <code class="notranslate">DOCREF(/path.md#section)</code><br>
+verifies the anchor against the target file's heading slugs.<br>
+Slugifiers: <code class="notranslate">github</code> (default), <code class="notranslate">pandoc</code>, <code class="notranslate">gitlab</code>, <code class="notranslate">hugo</code>,<br>
+<code class="notranslate">mkdocs-material</code>. Pandoc explicit <code class="notranslate">{#id}</code> overrides honoured under<br>
+every slugifier. Suggests Levenshtein-1 hits on miss (PR <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4646760887" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/29" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/29/hovercard" href="https://github.com/mboworks/coderef/pull/29">#29</a>, <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4657231131" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/36" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/36/hovercard" href="https://github.com/mboworks/coderef/pull/36">#36</a>).</li>
+<li><strong><code class="notranslate">coderef commit-msg</code> linter (DESIGN §16.1.1)</strong> — runs the pattern<br>
+engine over a commit-message file (or stdin), with per-pattern<br>
+<code class="notranslate">scope.commitMessage</code> opt-in / <code class="notranslate">"required"</code> enforcement (PR <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4646923482" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/30" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/30/hovercard" href="https://github.com/mboworks/coderef/pull/30">#30</a>).</li>
+<li><strong><code class="notranslate">coderef changes</code> IfChange/ThenChange verifier (DESIGN §10)</strong> —<br>
+three-pass coupled-change algorithm with full Shape A / B / C<br>
+support. ThenChange targets: bare file, <code class="notranslate">path:N</code> / <code class="notranslate">path:N-M</code>,<br>
+<code class="notranslate">path:label-name</code>, <code class="notranslate">path#anchor</code>, glob (<code class="notranslate">path/*.md{any|all}</code>). Shape<br>
+C composable ids (<code class="notranslate">IfChange(JIRA(PROJ-1234))</code>) resolve through the<br>
+reference engine so blocks in different files coalesce. NoVerify<br>
+escape hatch + 11 integration tests (PRs <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4654892349" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/31" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/31/hovercard" href="https://github.com/mboworks/coderef/pull/31">#31</a>, <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4658662730" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/37" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/37/hovercard" href="https://github.com/mboworks/coderef/pull/37">#37</a>, <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4658690031" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/38" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/38/hovercard" href="https://github.com/mboworks/coderef/pull/38">#38</a>, <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4658713795" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/39" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/39/hovercard" href="https://github.com/mboworks/coderef/pull/39">#39</a>, <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4658762400" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/40" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/40/hovercard" href="https://github.com/mboworks/coderef/pull/40">#40</a>).</li>
+<li><strong>References browser</strong> — activity-bar tree view in the VSCode<br>
+extension. Category-first grouping (DESIGN §5.7.3 display order),<br>
+click-to-jump, live updates via file-system watcher (PR <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4657095006" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/34" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/34/hovercard" href="https://github.com/mboworks/coderef/pull/34">#34</a>).</li>
+<li><strong>Doctor diagnostics shipped</strong> — <code class="notranslate">category.unset</code>,<br>
+<code class="notranslate">category.tooBroadOther</code>, <code class="notranslate">category.mismatch</code>, <code class="notranslate">anchor.skippedExt</code>,<br>
+<code class="notranslate">anchor.styleMismatch</code>, <code class="notranslate">commitMessage.allDisabled</code>,<br>
+<code class="notranslate">commitMessage.ifchangeMisconfigured</code>, <code class="notranslate">coupled.composableTypo</code><br>
+(PR <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4645022084" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/28" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/28/hovercard" href="https://github.com/mboworks/coderef/pull/28">#28</a>, <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4657119198" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/35" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/35/hovercard" href="https://github.com/mboworks/coderef/pull/35">#35</a>, <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4658801444" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/41" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/41/hovercard" href="https://github.com/mboworks/coderef/pull/41">#41</a>).</li>
+<li><strong>CI infrastructure</strong> — bzl-style <code class="notranslate">done</code> aggregator gate with a yq<br>
+self-check that fails CI if any newly-added job isn't wired into the<br>
+required-check list (PR <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4655006249" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/32" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/32/hovercard" href="https://github.com/mboworks/coderef/pull/32">#32</a>, <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4655058846" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/33" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/33/hovercard" href="https://github.com/mboworks/coderef/pull/33">#33</a>). Synced to mbo, bashtest, proto,<br>
+vscode-iwyu, mbo-tools.</li>
+</ul>
+<h3 dir="auto" id="removed">Removed</h3>
+<ul dir="auto">
+<li><strong>x86_64-apple-darwin (Intel Mac) release binary.</strong> Apple stopped<br>
+shipping Intel hardware in 2023 and GitHub's <code class="notranslate">macos-13</code> runner queue<br>
+was the slowest in the release matrix (PR <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4659104137" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/43" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/43/hovercard" href="https://github.com/mboworks/coderef/pull/43">#43</a>). The npm wrapper now<br>
+emits an <code class="notranslate">unsupported platform/arch</code> error for <code class="notranslate">darwin x64</code> instead<br>
+of trying to download a missing asset. Apple Silicon Macs (the<br>
+<code class="notranslate">aarch64-apple-darwin</code> binary) are unaffected.</li>
+</ul>
+<h3 dir="auto" id="fixed-1">Fixed</h3>
+<ul dir="auto">
+<li><strong>UTF-16 ↔ UTF-8 offset translation</strong> in the VSCode extension's<br>
+hover and DocumentLink providers. Files containing em-dashes,<br>
+emoji, or CJK characters no longer shifted ref positions by N<br>
+multi-byte characters (PR <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4643293505" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/27" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/27/hovercard" href="https://github.com/mboworks/coderef/pull/27">#27</a>).</li>
+</ul>
+<h3 dir="auto" id="workspace-stats-3">Workspace stats</h3>
+<ul dir="auto">
+<li>Test count grew from 209 → <strong>368</strong> (Rust + integration).</li>
+<li>7-job CI matrix (<code class="notranslate">rust</code> / <code class="notranslate">wasm</code> / <code class="notranslate">extension</code> / <code class="notranslate">npm-wrapper</code> /<br>
+<code class="notranslate">schema</code> / <code class="notranslate">docs</code> / <code class="notranslate">done</code>); branch protection requires only <code class="notranslate">done</code>.</li>
+</ul>
+<h3 dir="auto" id="deferred-to-v03">Deferred to v0.3</h3>
+<ul dir="auto">
+<li><code class="notranslate">commitMessage.requiredNeverFires</code> doctor check (needs git-log<br>
+corpus plumbing).</li>
+<li>Strict <code class="notranslate">{all}</code> glob semantics (needs workspace-wide enumeration).</li>
+<li><code class="notranslate">{soft}</code> glob flag (warning severity).</li>
+<li><code class="notranslate">Label('name') ... EndLabel</code> compat form (per-pattern label config).</li>
+<li>References-browser longer tail: scan modes, Mine/Drifted filters,<br>
+Copy-as-Markdown, exportJson.</li>
+<li>Multi-target references, network profiles, <code class="notranslate">coderef upgrade</code><br>
+codemod, visual config editor, external-URL anchor verification.</li>
+</ul>
+<h2 dir="auto" id="v020--yanked-never-shipped">v0.2.0 — yanked, never shipped</h2>
+<p dir="auto">The original release run (workflow 27498341045) was cancelled while<br>
+the <code class="notranslate">x86_64-apple-darwin</code> build sat in the <code class="notranslate">macos-13</code> GitHub Actions<br>
+queue. The matrix was reshaped to drop Intel Mac support (PR <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4659104137" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/43" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/43/hovercard" href="https://github.com/mboworks/coderef/pull/43">#43</a>, <a class="issue-link js-issue-link" data-error-text="Failed to load title" data-id="4659322743" data-permission-text="Title is private" data-url="https://github.com/mboworks/coderef/issues/44" data-hovercard-type="pull_request" data-hovercard-url="/mboworks/coderef/pull/44/hovercard" href="https://github.com/mboworks/coderef/pull/44">#44</a>)<br>
+and the actual release ships as <strong>v0.2.1</strong>. The <code class="notranslate">v0.2.0</code> tag exists on<br>
+the remote as an orphan ref with no GitHub Release, no published<br>
+binaries, and no presence on npm or the VSCode Marketplace.</p>
+<h2 dir="auto" id="v010--2026-06-07">v0.1.0 — 2026-06-07</h2>
+<p dir="auto">Minimum viable foundation:</p>
+<ul dir="auto">
+<li>Pattern engine + JSONC config loader.</li>
+<li>HTTP verifier (HEAD + GET fallback, configurable timeout).</li>
+<li>VSCode extension with DocumentLinkProvider + HoverProvider,<br>
+in-process WASM-shared core so editor and CLI never diverge.</li>
+<li>CLI subcommands: <code class="notranslate">config show</code>, <code class="notranslate">list</code>, <code class="notranslate">check</code>, <code class="notranslate">doctor</code>,<br>
+<code class="notranslate">patterns</code>, <code class="notranslate">explain</code>, <code class="notranslate">help</code>.</li>
+<li>Pre-commit hook plumbing.</li>
+<li>npm wrapper (<code class="notranslate">@helly25/coderef</code>) that downloads platform binaries<br>
+from GitHub Releases on install.</li>
+<li>Distribution: GitHub Releases (CLI binaries) → npm wrapper →<br>
+VSCode marketplace, ordered (<code class="notranslate">docs/release.md</code>).</li>
+</ul></main><footer>Release snapshot · 0eb7e44fcf145f41f78040601a18e3e9764a960e</footer></body></html>

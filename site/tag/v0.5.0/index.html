@@ -1,0 +1,102 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>README.md - coderef v0.5.0</title><style>
+:root { color-scheme: light dark; font: 17px/1.6 system-ui, sans-serif; }
+body { max-width: 76rem; margin: auto; padding: 2rem; }
+a { color: light-dark(#075da8, #8cc8ff); }
+nav { display: flex; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid #888; }
+pre { padding: 1rem; overflow: auto; background: light-dark(#f3f5f7, #20252b); }
+code { font-size: .9em; } img { max-width: 100%; }
+table { display: block; overflow: auto; border-collapse: collapse; }
+th, td { border: 1px solid #888; padding: .4rem .7rem; }
+blockquote { border-left: 4px solid #888; margin-left: 0; padding-left: 1rem; }
+</style><body><nav><a href="/coderef/site/tag/v0.5.0/">Home</a><a href="/coderef/site/tag/v0.5.0/documents.html">Documentation</a><a href="https://github.com/mboworks/coderef/releases/tag/v0.5.0">Release &amp; downloads</a><a href="https://github.com/mboworks/coderef/tree/0eb7e44fcf145f41f78040601a18e3e9764a960e">Source</a><a href="/coderef/site/tag/v0.5.0/schema/v1.json">JSON Schema v1</a></nav><p>coderef v0.5.0</p><main><h1 dir="auto" id="coderef">coderef</h1>
+<p dir="auto">Regex-driven references in source code — resolved, click-opened, and<br>
+verified identically from VSCode and from CI. A <code class="notranslate">.coderef.jsonc</code> config<br>
+declares the patterns; the same engine runs inside the editor (via WASM,<br>
+in-process) and inside the Rust CLI binary (for <code class="notranslate">pre-commit</code> and CI).</p>
+<p dir="auto">The working specification is <a href="DESIGN.html"><code class="notranslate">DESIGN.md</code></a>; this README is<br>
+the elevator pitch.</p>
+<div class="highlight highlight-source-python" dir="auto"><pre class="notranslate"><span class="pl-c"># Click-to-open in VSCode; verified by pre-commit; same regex engine in both.</span>
+<span class="pl-c">#</span>
+<span class="pl-c"># TODO(@marcus): swap to argon2id — JIRA(SEC-87) tracks it.</span>
+<span class="pl-c"># DOCREF(/docs/security/hashing) explains the threat model.</span>
+<span class="pl-c"># RFC(8259) is the JSON spec.</span>
+
+<span class="pl-c"># IfChange / ThenChange enforces co-modification across files:</span>
+<span class="pl-c"># IfChange('hash-params')</span>
+<span class="pl-c1">HASH_PARAMS</span> <span class="pl-c1">=</span> {<span class="pl-s">"memory_kib"</span>: <span class="pl-c1">19456</span>, <span class="pl-s">"iterations"</span>: <span class="pl-c1">2</span>, <span class="pl-s">"parallelism"</span>: <span class="pl-c1">1</span>}
+<span class="pl-c"># ThenChange(/docs/security.md:hash-params, /tests/test_auth.py:hash-params)</span></pre></div>
+<p dir="auto">Patterns declare their regex, the URL or local-file they resolve to,<br>
+how they're verified, what category they belong to, and what should<br>
+happen on hover. Same regex flavour, same semantics, in both hosts.</p>
+<h2 dir="auto" id="planning-horizon">Planning horizon</h2>
+<markdown-accessiblity-table><table role="table">
+<thead>
+<tr>
+<th>Version</th>
+<th>Theme</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>v0.1</strong></td>
+<td>Minimum viable: pattern engine + HTTP verifier + click-to-open. WASM-shared core (no engine divergence between editor and CLI).</td>
+</tr>
+<tr>
+<td><strong>v0.2</strong></td>
+<td>Coupled-change (<code class="notranslate">IfChange</code>/<code class="notranslate">ThenChange</code>) + categories + references browser + commit-message linting + anchor verification for in-repo Markdown + block-on-marker (<code class="notranslate">DO NOT COMMIT</code> / <code class="notranslate">NOCOMMIT</code> source guards via <code class="notranslate">kind: "block"</code>).</td>
+</tr>
+<tr>
+<td><strong>v0.3</strong></td>
+<td>Multi-target references + full network profiles + auto-upgrade codemod (<code class="notranslate">coderef upgrade</code>) + visual config editor + external-URL anchor verification.</td>
+</tr>
+<tr>
+<td><strong>v0.4</strong></td>
+<td>LSP server mode + composable coupled-change IDs + git-submodule pass-through.</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">Anything past v0.4 is deliberately not planned in detail (see<br>
+<a href="DESIGN.html"><code class="notranslate">DESIGN.md</code> §20.5</a>). The full per-version scope is in<br>
+<a href="DESIGN.html"><code class="notranslate">DESIGN.md</code> §20</a>.</p>
+<h2 dir="auto" id="repo-layout">Repo layout</h2>
+<ul dir="auto">
+<li><a href="DESIGN.html"><code class="notranslate">DESIGN.md</code></a> — the working spec. Source of truth.</li>
+<li><a href="AGENTS.html"><code class="notranslate">AGENTS.md</code></a> — conventions every contributor (human or<br>
+AI agent) follows. Includes the markdown table-alignment rule and a<br>
+pointer to the script that enforces it.</li>
+<li><a href="CLAUDE.html"><code class="notranslate">CLAUDE.md</code></a> — entry-point for Claude Code; redirects<br>
+to <code class="notranslate">AGENTS.md</code>.</li>
+<li><a href="https://github.com/mboworks/coderef/blob/0eb7e44fcf145f41f78040601a18e3e9764a960e/tools/align-md-tables.py"><code class="notranslate">tools/align-md-tables.py</code></a> — the<br>
+table-alignment script.</li>
+<li><a href="https://github.com/mboworks/coderef/blob/0eb7e44fcf145f41f78040601a18e3e9764a960e/.coderef.jsonc"><code class="notranslate">.coderef.jsonc</code></a> — the project's own coderef<br>
+config; the engine dogfoods against this on every CI run.</li>
+<li><a href="https://github.com/mboworks/coderef/blob/0eb7e44fcf145f41f78040601a18e3e9764a960e/LICENSE"><code class="notranslate">LICENSE</code></a> — Apache 2.0.</li>
+</ul>
+<h2 dir="auto" id="pre-commit-hooks-v01">Pre-commit hooks (v0.1)</h2>
+<p dir="auto">The <code class="notranslate">.pre-commit-hooks.yaml</code> declares the hook <em>shape</em> consumers<br>
+will install once the npm wrapper ships a binary (v0.2). For v0.1<br>
+the dogfood-able path is <code class="notranslate">language: system</code> against a locally-built<br>
+binary; see <a href="https://github.com/mboworks/coderef/blob/0eb7e44fcf145f41f78040601a18e3e9764a960e/.pre-commit-config.yaml"><code class="notranslate">.pre-commit-config.yaml</code></a><br>
+for the working example used by this repo's own CI:</p>
+<div class="highlight highlight-source-yaml" dir="auto"><pre class="notranslate">- <span class="pl-ent">id</span>: <span class="pl-s">coderef-doctor</span>
+  <span class="pl-ent">entry</span>: <span class="pl-s">cargo run --quiet --release --bin coderef -- doctor --no-scan .</span>
+  <span class="pl-ent">language</span>: <span class="pl-s">system</span>
+
+- <span class="pl-ent">id</span>: <span class="pl-s">coderef-check</span>
+  <span class="pl-ent">entry</span>: <span class="pl-s">cargo run --quiet --release --bin coderef -- check .</span>
+  <span class="pl-ent">language</span>: <span class="pl-s">system</span></pre></div>
+<h2 dir="auto" id="what-coderef-is-not">What <code class="notranslate">coderef</code> is <em>not</em></h2>
+<ul dir="auto">
+<li>Not a TODO tracker — it resolves the references you put in source,<br>
+it doesn't manage them.</li>
+<li>Not a tag-uniqueness enforcer (<a href="https://github.com/stepchowfun/tagref"><code class="notranslate">tagref</code></a><br>
+already covers that niche).</li>
+<li>Not a generic markdown link checker<br>
+(<a href="https://github.com/lycheeverse/lychee"><code class="notranslate">lychee</code></a> covers that).</li>
+<li>Not an AST-aware refactoring tool — <code class="notranslate">coderef upgrade</code> is regex-only<br>
+by design; for AST work, use jscodeshift / ast-grep / comby.</li>
+</ul>
+<p dir="auto">See <a href="DESIGN.html"><code class="notranslate">DESIGN.md</code> §23</a> for the full out-of-scope list and<br>
+the reasoning.</p>
+<h2 dir="auto" id="license">License</h2>
+<p dir="auto">Apache License 2.0. See <a href="https://github.com/mboworks/coderef/blob/0eb7e44fcf145f41f78040601a18e3e9764a960e/LICENSE"><code class="notranslate">LICENSE</code></a>.</p></main><footer>Release snapshot · 0eb7e44fcf145f41f78040601a18e3e9764a960e</footer></body></html>

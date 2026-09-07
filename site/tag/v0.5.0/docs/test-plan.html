@@ -1,0 +1,73 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>docs/test-plan.md - coderef v0.5.0</title><style>
+:root { color-scheme: light dark; font: 17px/1.6 system-ui, sans-serif; }
+body { max-width: 76rem; margin: auto; padding: 2rem; }
+a { color: light-dark(#075da8, #8cc8ff); }
+nav { display: flex; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid #888; }
+pre { padding: 1rem; overflow: auto; background: light-dark(#f3f5f7, #20252b); }
+code { font-size: .9em; } img { max-width: 100%; }
+table { display: block; overflow: auto; border-collapse: collapse; }
+th, td { border: 1px solid #888; padding: .4rem .7rem; }
+blockquote { border-left: 4px solid #888; margin-left: 0; padding-left: 1rem; }
+</style><body><nav><a href="/coderef/site/tag/v0.5.0/">Home</a><a href="/coderef/site/tag/v0.5.0/documents.html">Documentation</a><a href="https://github.com/mboworks/coderef/releases/tag/v0.5.0">Release &amp; downloads</a><a href="https://github.com/mboworks/coderef/tree/0eb7e44fcf145f41f78040601a18e3e9764a960e">Source</a><a href="/coderef/site/tag/v0.5.0/schema/v1.json">JSON Schema v1</a></nav><p>coderef v0.5.0</p><main><h1 dir="auto" id="docstest-planmd--the-one-shot-ledger">docs/test-plan.md — the one-shot ledger</h1>
+<p dir="auto">Holding pen for manual verifications that haven't been codified as<br>
+committed tests yet. See <code class="notranslate">DESIGN.md</code> §17.2 for the discipline.</p>
+<p dir="auto">Every entry has the same shape:</p>
+<pre class="notranslate"><code class="notranslate">## &lt;short title&gt;
+
+- **What was verified**: …
+- **How it was verified**: …
+- **What test should replace this note**: …
+- **Tracked**: &lt;commit / PR / issue link&gt;
+</code></pre>
+<p dir="auto">Empty is good. A long list here is a code-smell signal that some test<br>
+needs writing.</p>
+<hr>
+<h2 dir="auto" id="schema-load-smoke-already-codified--keep-as-the-template">Schema-load smoke (already codified — keep as the template)</h2>
+<ul dir="auto">
+<li><strong>What was verified</strong>: that <code class="notranslate">schema/coderef.schema.json</code> parses as<br>
+valid JSON and that <code class="notranslate">examples/minimal.coderef.jsonc</code> validates<br>
+cleanly against it.</li>
+<li><strong>How it was verified</strong>: ran <code class="notranslate">python3 tools/validate-config.py schema/coderef.schema.json examples/minimal.coderef.jsonc</code> locally<br>
+during the schema PR (commit <code class="notranslate">c7c4fe9</code>).</li>
+<li><strong>Replaced by</strong>: <code class="notranslate">.github/workflows/ci.yml</code> job <code class="notranslate">schema</code> — runs the<br>
+same validation on every push.</li>
+<li><strong>Tracked</strong>: commits <code class="notranslate">c7c4fe9</code>, <code class="notranslate">cfc9263</code>.</li>
+</ul>
+<p dir="auto">This entry is kept as documentation of the template. New entries go<br>
+below.</p>
+<hr>
+<h2 dir="auto" id="vscode-extension-end-to-end-closed--codified">VSCode extension end-to-end (closed — codified)</h2>
+<ul dir="auto">
+<li><strong>What was verified</strong>: extension activates in a workspace<br>
+containing <code class="notranslate">.coderef.jsonc</code>; DocumentLinks resolve for planted<br>
+TODO(<a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/user/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/user">@user</a>) markers; hover returns content with pattern id +<br>
+description; <code class="notranslate">coderef.explainReference</code> is registered.</li>
+<li><strong>Replaced by</strong>: <code class="notranslate">extension/src/test/runtime/extension.test.ts</code>,<br>
+run via <code class="notranslate">@vscode/test-electron</code> (script: <code class="notranslate">npm run test-runtime</code>).<br>
+CI runs the same path in the <code class="notranslate">VSCode extension (TS + VSIX)</code> job.</li>
+<li><strong>Tracked</strong>: closed by the PR adding <code class="notranslate">@vscode/test-electron</code>.</li>
+</ul>
+<hr>
+<h2 dir="auto" id="utf-16-vs-utf-8-offset-mismatch-in-providersts-closed--codified">UTF-16 vs UTF-8 offset mismatch in providers.ts (closed — codified)</h2>
+<ul dir="auto">
+<li><strong>What was verified</strong>: hover, document-link, and the<br>
+<code class="notranslate">coderef.explainReference</code> command translate between VSCode's<br>
+UTF-16 positions and the engine's UTF-8 <code class="notranslate">byte_start</code> / <code class="notranslate">byte_end</code><br>
+rather than comparing them naively. Previously they used<br>
+<code class="notranslate">document.offsetAt()</code> (UTF-16) against engine byte offsets<br>
+(UTF-8); a single em-dash earlier in the file misaligned all<br>
+subsequent lookups.</li>
+<li><strong>Replaced by</strong>: <code class="notranslate">extension/src/textOffset.ts</code> (helper) +<br>
+<code class="notranslate">extension/src/textOffset.test.ts</code> (unit tests covering em-dash,<br>
+emoji surrogate pairs, CJK round-trip, off-by-one boundary cases)
+<ul dir="auto">
+<li>a new runtime test<br>
+<code class="notranslate">extension/src/test/runtime/extension.test.ts:hover-resolves-the-SECOND-TODO-bob</code><br>
+that hovers TODO(<a class="user-mention notranslate" data-hovercard-type="user" data-hovercard-url="/users/bob/hovercard" data-octo-click="hovercard-link-click" data-octo-dimensions="link_type:self" href="https://github.com/bob">@bob</a>) after an em-dash + emoji in the fixture.<br>
+Any regression to UTF-16-vs-UTF-8 comparison fails the hover<br>
+lookup in that test.</li>
+</ul>
+</li>
+<li><strong>Tracked</strong>: closed by the PR adding <code class="notranslate">extension/src/textOffset.ts</code>.</li>
+</ul>
+<hr></main><footer>Release snapshot · 0eb7e44fcf145f41f78040601a18e3e9764a960e</footer></body></html>

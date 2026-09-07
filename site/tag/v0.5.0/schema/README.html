@@ -1,0 +1,59 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>schema/README.md - coderef v0.5.0</title><style>
+:root { color-scheme: light dark; font: 17px/1.6 system-ui, sans-serif; }
+body { max-width: 76rem; margin: auto; padding: 2rem; }
+a { color: light-dark(#075da8, #8cc8ff); }
+nav { display: flex; flex-wrap: wrap; gap: 1rem; border-bottom: 1px solid #888; }
+pre { padding: 1rem; overflow: auto; background: light-dark(#f3f5f7, #20252b); }
+code { font-size: .9em; } img { max-width: 100%; }
+table { display: block; overflow: auto; border-collapse: collapse; }
+th, td { border: 1px solid #888; padding: .4rem .7rem; }
+blockquote { border-left: 4px solid #888; margin-left: 0; padding-left: 1rem; }
+</style><body><nav><a href="/coderef/site/tag/v0.5.0/">Home</a><a href="/coderef/site/tag/v0.5.0/documents.html">Documentation</a><a href="https://github.com/mboworks/coderef/releases/tag/v0.5.0">Release &amp; downloads</a><a href="https://github.com/mboworks/coderef/tree/0eb7e44fcf145f41f78040601a18e3e9764a960e">Source</a><a href="/coderef/site/tag/v0.5.0/schema/v1.json">JSON Schema v1</a></nav><p>coderef v0.5.0</p><main><h1 dir="auto" id="schema">Schema</h1>
+<p dir="auto"><code class="notranslate">coderef.schema.json</code> is the JSON Schema (draft 2020-12) for<br>
+<code class="notranslate">.coderef.jsonc</code> / <code class="notranslate">.config/coderef.jsonc</code> config files.</p>
+<p dir="auto">It's the authoritative reference for what fields exist, their types,<br>
+and their version slots. The narrative reference is<br>
+<a href="../DESIGN.html"><code class="notranslate">../DESIGN.md</code></a> §7; the schema is the machine-readable<br>
+form of the same surface.</p>
+<h2 dir="auto" id="use-in-a-config-file">Use in a config file</h2>
+<p dir="auto">Add <code class="notranslate">$schema</code> at the top of your <code class="notranslate">.coderef.jsonc</code>:</p>
+<div class="highlight highlight-source-json-comments" dir="auto"><pre class="notranslate">{
+  <span class="pl-ent">"$schema"</span>: <span class="pl-s"><span class="pl-pds">"</span>https://helly25.github.io/coderef/schema/v1.json<span class="pl-pds">"</span></span>,
+  <span class="pl-ii">...</span>
+}</pre></div>
+<p dir="auto">VSCode (and any editor that respects <code class="notranslate">$schema</code>) will load it for<br>
+autocomplete, lint, and hover descriptions. Until the schema is<br>
+published at the canonical URL, point <code class="notranslate">$schema</code> at a relative path<br>
+during development:</p>
+<div class="highlight highlight-source-json-comments" dir="auto"><pre class="notranslate">{
+  <span class="pl-ent">"$schema"</span>: <span class="pl-s"><span class="pl-pds">"</span>./schema/coderef.schema.json<span class="pl-pds">"</span></span>,
+  <span class="pl-ii">...</span>
+}</pre></div>
+<h2 dir="auto" id="validating-manually">Validating manually</h2>
+<p dir="auto">The schema validates with any draft-2020-12 validator. Two common<br>
+choices:</p>
+<div class="highlight highlight-source-shell" dir="auto"><pre class="notranslate"><span class="pl-c"><span class="pl-c">#</span> Node + ajv</span>
+npx -y ajv-cli validate -s schema/coderef.schema.json -d examples/minimal.coderef.jsonc
+
+<span class="pl-c"><span class="pl-c">#</span> Python</span>
+python3 -m pip install --user check-jsonschema
+check-jsonschema --schemafile schema/coderef.schema.json examples/minimal.coderef.jsonc</pre></div>
+<p dir="auto">A CI pipeline that exercises the schema against the example configs<br>
+lands with the CI plumbing commit (see DESIGN.md §19 follow-up<br>
+sequence).</p>
+<h2 dir="auto" id="versioning">Versioning</h2>
+<p dir="auto">Major versions of the schema move in lockstep with major versions of<br>
+the runtime. <code class="notranslate">v1.json</code> covers the v0.1–v0.4 design surface (post-v0.4<br>
+features are tagged in field descriptions but the schema does not<br>
+reject them — forward-compat). When the runtime hits v1.0 and the<br>
+schema stabilises, this file is frozen at <code class="notranslate">v1.json</code> and breaking<br>
+schema changes move to <code class="notranslate">v2.json</code>.</p>
+<h2 dir="auto" id="forward-compatibility">Forward compatibility</h2>
+<p dir="auto">The top-level schema enforces <code class="notranslate">additionalProperties: false</code> to surface<br>
+typos. Pattern-level config blocks (<code class="notranslate">scope</code>, <code class="notranslate">actions</code>, etc.) similarly<br>
+enforce closed structures so that an unknown field at any level is<br>
+caught as a doctor warning, not silently ignored. New fields land via<br>
+schema PRs alongside the feature that introduces them.</p>
+<p dir="auto">Variables, blame user mapping, and integrity check overrides have<br>
+open shapes (<code class="notranslate">additionalProperties: true</code>) because their keys are<br>
+user-chosen.</p></main><footer>Release snapshot · 0eb7e44fcf145f41f78040601a18e3e9764a960e</footer></body></html>

@@ -1,0 +1,643 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Config",
+  "description": "Top-level coderef configuration. See `DESIGN.md` §7.2 / §7.3.\n\n`IndexMap` is used in place of `HashMap` so that pattern declaration\norder is preserved — relevant for tie-breaking when two patterns share\nthe same `priority` (DESIGN.md §5.5, §9.2).",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "description": "JSON Schema URL for editor autocomplete. Ignored by the engine.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "variables": {
+      "description": "User-defined variables (`${config:variables.x}`). See `DESIGN.md` §8.3.",
+      "type": "object",
+      "additionalProperties": true
+    },
+    "ignore": {
+      "description": "Gitignore-style globs to exclude from scanning, applied repo-wide.\nSee `DESIGN.md` §7.2.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "patterns": {
+      "description": "Map of pattern id → pattern definition. See `DESIGN.md` §5, §10.",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/Pattern"
+      },
+      "default": {}
+    },
+    "workspaceRoot": {
+      "description": "Override the auto-detected workspace root. Supports variables.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "severity": {
+      "description": "Workspace-level severity overrides for doctor checks.\n\nResolution order is: per-pattern `Pattern.severity[check_id]`,\nthen this map, then the check's hardcoded default. Use it to\nsuppress a check across every pattern in the repo (`{\n\"pattern.captureUnused\": \"off\" }`), or escalate a check\nglobally (`{ \"pattern.unused\": \"error\" }`) without sprinkling\noverrides on every pattern.",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/Severity"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "Pattern": {
+      "description": "One reference pattern. See `DESIGN.md` §5.1, §5.3, §7.3.\n\nMany fields are tagged for later versions; they are accepted by the\nschema and stored on `Pattern` but not exercised by the v0.1 engine.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "description": "Resolver kind. Defaults to `Url`. See `DESIGN.md` §5.2.",
+          "$ref": "#/$defs/PatternKind",
+          "default": "url"
+        },
+        "regex": {
+          "description": "`fancy-regex`-compatible regex with named captures. See §5.1.",
+          "type": "string"
+        },
+        "description": {
+          "description": "Free-form description of what this pattern is for and when it\napplies. Surfaces in `coderef patterns`, hover tooltips, and\ndoctor diagnostics that name the pattern. Optional but strongly\nrecommended for shared / template configs.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "flags": {
+          "description": "Regex flags applied on top of the always-on `g` mode.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "target": {
+          "description": "Single-target shorthand (v0.1). Mutually exclusive with `targets`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "targets": {
+          "description": "Multi-target list (v0.3+). See `DESIGN.md` §5.3.1.",
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TargetSpec"
+          }
+        },
+        "title": {
+          "description": "Hover / link title template. Supports variables.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "priority": {
+          "description": "Priority for tie-breaking overlapping matches. Default 0.\nSee `DESIGN.md` §5.5, §9.2.",
+          "type": "integer",
+          "format": "int32",
+          "default": 0
+        },
+        "category": {
+          "description": "Semantic category (v0.2; DESIGN.md §5.7). Free-form string;\nvalidated against the built-in + user-defined category set at\nengine load.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "scope": {
+          "description": "Scoping rules: where this pattern is applied.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ScopeConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "actions": {
+          "description": "Per-action overrides.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ActionsConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "verify": {
+          "description": "Shorthand verify toggle. Either a boolean or a full `VerifyToggle`.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VerifyToggle"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "resolve": {
+          "description": "Local-path resolver config (only meaningful for `kind: \"local\"`).",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LocalResolveConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "severity": {
+          "description": "Per-check severity overrides. Keys are check names; values are\n`Severity`. See `DESIGN.md` §5.4.3, §9.1.",
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/Severity"
+          }
+        },
+        "label": {
+          "description": "Compat-form marker spelling for the `IfChange`/`ThenChange`\nsurface (DESIGN §10.3). When set on at least one\n`kind: \"ifchange\"` pattern, the parser additionally recognises\nthe configured `open.regex` and `close.regex` as labelled-region\nmarkers alongside the canonical `IfChange`/`ThenChange` (and the\nglobal `Label`/`EndLabel` from #54). Useful for codebases\nmirroring `ebrevdo/ifttt-lint` or other coupled-change tools\nthat use different keywords.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LabelConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "regex"
+      ]
+    },
+    "PatternKind": {
+      "description": "Reference kinds. See `DESIGN.md` §5.2.\n\nv0.1 implements `Url` and `Local`. `Block` (DESIGN §5.2.1, v0.2) is\nthe \"marker must not be present\" kind used for `DO NOT COMMIT` /\n`DO NOT MERGE` style guards. `IfChange` is accepted by the schema\nso v0.2 configs parse, but the v0.1 engine rejects it during scan.\n`Command` is reserved for the post-v0.4 backlog.",
+      "oneOf": [
+        {
+          "description": "Target is a URL string.",
+          "type": "string",
+          "const": "url"
+        },
+        {
+          "description": "Target is a workspace-relative path resolved via §6.",
+          "type": "string",
+          "const": "local"
+        },
+        {
+          "description": "\"Must not be present\" marker. Every match is a failure surfaced\nby `coderef check`; intended for `DO NOT COMMIT` / `DO NOT\nMERGE` style guards. No target resolution; the matched text is\nitself the diagnostic.",
+          "type": "string",
+          "const": "block"
+        },
+        {
+          "description": "Coupled-change marker pair (v0.2; see §10).",
+          "type": "string",
+          "const": "ifchange"
+        },
+        {
+          "description": "Custom command (post-v0.4 backlog).",
+          "type": "string",
+          "const": "command"
+        }
+      ]
+    },
+    "TargetSpec": {
+      "description": "One target in a multi-target pattern. See `DESIGN.md` §5.3.1 (v0.3).",
+      "type": "object",
+      "properties": {
+        "label": {
+          "description": "Display label for the hover / \"Open with…\" picker.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "url": {
+          "description": "URL template; supports variables.",
+          "type": "string"
+        },
+        "priority": {
+          "description": "Priority; higher wins for primary. Default 0.",
+          "type": "integer",
+          "format": "int32",
+          "default": 0
+        },
+        "verify": {
+          "description": "Per-target verify override.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VerifyToggle"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "url"
+      ]
+    },
+    "VerifyToggle": {
+      "description": "Per-pattern verify configuration.",
+      "anyOf": [
+        {
+          "description": "`\"verify\": true` / `\"verify\": false`.",
+          "type": "boolean"
+        },
+        {
+          "description": "Full structured toggle.",
+          "$ref": "#/$defs/VerifyOptions"
+        },
+        {
+          "description": "Empty object preserves \"unspecified\" semantics.",
+          "type": "null"
+        }
+      ]
+    },
+    "VerifyOptions": {
+      "description": "Structured verify configuration (the non-boolean shape).",
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "description": "Whether verification runs at all. `None` means inherit defaults.",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "profile": {
+          "description": "Force a specific network profile for this verification.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "required": {
+          "description": "For multi-target patterns: whether this target must succeed for the\nreference to be considered verified (v0.3).",
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "method": {
+          "description": "HTTP method override.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "acceptStatus": {
+          "description": "HTTP statuses considered success.",
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "uint16",
+            "minimum": 0,
+            "maximum": 65535
+          }
+        },
+        "timeoutMs": {
+          "description": "Per-target timeout.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "anchor": {
+          "description": "Anchor verification mode (v0.2; §6.3.1, §13.3.1).",
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "ScopeConfig": {
+      "description": "Where a pattern is applied. See `DESIGN.md` §5.4.",
+      "type": "object",
+      "properties": {
+        "include": {
+          "description": "Gitignore-style globs to include. Empty = include everything.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "exclude": {
+          "description": "Gitignore-style globs to exclude. Empty = no extra exclusions.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "commentsOnly": {
+          "description": "If true, only match inside detected comment regions. See §5.4.1.",
+          "type": "boolean"
+        },
+        "prefix": {
+          "description": "Full prefix policy (v0.2; §5.4.2). Accepted for forward compat."
+        },
+        "commitMessage": {
+          "description": "Commit-message scope (§5.4.3). `true` / `false` / `\"required\"`.\n`None` = use the kind-based default (`true` for url/local;\n`false` for ifchange/block/command).",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CommitMessageScope"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "CommitMessageScope": {
+      "description": "Per-pattern commit-message scope. See `DESIGN.md` §5.4.3.",
+      "anyOf": [
+        {
+          "description": "`true` — pattern scans commit messages. `false` — pattern does\nNOT scan commit messages.",
+          "type": "boolean"
+        },
+        {
+          "description": "`\"required\"` — every commit message must contain at least one\nmatch of this pattern. Missing matches are reported as a\n`commitMessageMissing` diagnostic on the pattern.",
+          "$ref": "#/$defs/CommitMessageTag"
+        }
+      ]
+    },
+    "CommitMessageTag": {
+      "description": "String tag for `CommitMessageScope::Tag`. Single-variant enum so\nserde can distinguish it from `Bool` in the untagged form.",
+      "oneOf": [
+        {
+          "description": "`\"required\"` — pattern must match every commit message.",
+          "type": "string",
+          "const": "required"
+        }
+      ]
+    },
+    "ActionsConfig": {
+      "description": "Per-pattern action overrides (open / preview / verify).\nSee `DESIGN.md` §5.3.",
+      "type": "object",
+      "properties": {
+        "open": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ActionConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "preview": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ActionConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "verify": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ActionConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "ActionConfig": {
+      "description": "One action. The full set of fields is accepted by the schema so v0.2+\nconfigs parse; the v0.1 engine consumes only `kind` and `url`.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "description": "Action kind (e.g. `url`, `http`, `file`, `static`).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "url": {
+          "description": "URL template (for `http` previews / verifies).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "headers": {
+          "description": "Custom headers.",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "method": {
+          "description": "HTTP method override.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "acceptStatus": {
+          "description": "Accepted HTTP statuses.",
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "uint16",
+            "minimum": 0,
+            "maximum": 65535
+          }
+        },
+        "render": {
+          "description": "Markdown template for HTTP-preview rendering.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "timeoutMs": {
+          "description": "Per-action timeout.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        }
+      }
+    },
+    "LocalResolveConfig": {
+      "description": "Local-path resolution for `kind: \"local\"` patterns. See `DESIGN.md` §6.",
+      "type": "object",
+      "properties": {
+        "root": {
+          "description": "Search root; defaults to `${workspaceFolder}`. Supports variables.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "anchorMode": {
+          "description": "Anchor mode for path resolution.",
+          "$ref": "#/$defs/AnchorMode",
+          "default": "workspace"
+        },
+        "extensions": {
+          "description": "File extensions to try when the literal path doesn't resolve.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "indexFiles": {
+          "description": "Index file names to try when the candidate is a directory.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "caseSensitive": {
+          "description": "Filesystem case-sensitivity policy.",
+          "$ref": "#/$defs/CaseSensitivity",
+          "default": "fs"
+        },
+        "anchor": {
+          "description": "Capture template for the anchor name (e.g. `${anchor}`).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "anchorVerify": {
+          "description": "Anchor verification mode (v0.2; §6.3).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "slugifier": {
+          "description": "Markdown slugifier (v0.2; §6.3.2). Free-form to allow custom\nconfiguration objects without locking the schema now."
+        }
+      },
+      "additionalProperties": false
+    },
+    "AnchorMode": {
+      "description": "How to interpret `kind: \"local\"` paths. See `DESIGN.md` §6.1.",
+      "oneOf": [
+        {
+          "description": "Both `/path` and `path` anchor at workspace root.",
+          "type": "string",
+          "const": "workspace"
+        },
+        {
+          "description": "`path` is file-relative; `/path` is workspace-rooted.",
+          "type": "string",
+          "const": "file"
+        },
+        {
+          "description": "As `File`, but `./path` forces file-relative.",
+          "type": "string",
+          "const": "rootedOrFile"
+        }
+      ]
+    },
+    "CaseSensitivity": {
+      "description": "Filesystem case-sensitivity policy. See `DESIGN.md` §6.2.",
+      "oneOf": [
+        {
+          "description": "Honour the filesystem (insensitive on macOS default + Windows,\nsensitive on Linux).",
+          "type": "string",
+          "const": "fs"
+        },
+        {
+          "description": "Always case-sensitive, regardless of filesystem.",
+          "type": "string",
+          "const": "always"
+        },
+        {
+          "description": "Always case-insensitive, regardless of filesystem.",
+          "type": "string",
+          "const": "never"
+        }
+      ]
+    },
+    "Severity": {
+      "description": "Severity for a doctor check or pattern outcome.\n\nOrder is significant: a `max` over a set of severities is meaningful —\n`Off < Hint < Info < Warning < Error`.",
+      "oneOf": [
+        {
+          "description": "The check is disabled; produces no diagnostic.",
+          "type": "string",
+          "const": "off"
+        },
+        {
+          "description": "Informational; cosmetic / advisory.",
+          "type": "string",
+          "const": "hint"
+        },
+        {
+          "description": "Worth noting but not a defect.",
+          "type": "string",
+          "const": "info"
+        },
+        {
+          "description": "Likely a defect; surfaces in reports.",
+          "type": "string",
+          "const": "warning"
+        },
+        {
+          "description": "Definite defect; fails the run.",
+          "type": "string",
+          "const": "error"
+        }
+      ]
+    },
+    "LabelConfig": {
+      "description": "Per-pattern compat-form marker spellings (DESIGN §10.3).\n\nBoth `open` and `close` are required if `label` is set; the\nparser validates this at config load via the\n`pattern.labelCompatMissing` doctor diagnostic.",
+      "type": "object",
+      "properties": {
+        "open": {
+          "description": "Open-marker regex (e.g. `r\"\\bLabel\\((?<id>[^)]*)\\)\"` or\n`r\"\\bBEGIN_BLOCK\\((?<id>[^)]*)\\)\"`). The `id` named group, if\npresent, supplies the block's label name; without it the\nmatched block is anonymous (Shape A only).",
+          "$ref": "#/$defs/LabelMarker"
+        },
+        "close": {
+          "description": "Close-marker regex (e.g. `r\"\\bEndLabel\\b\"`,\n`r\"\\bEND_BLOCK\\b\"`). Close markers don't carry an id —\npairing is positional (next open ↔ next close).",
+          "$ref": "#/$defs/LabelMarker"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "open",
+        "close"
+      ]
+    },
+    "LabelMarker": {
+      "type": "object",
+      "properties": {
+        "regex": {
+          "description": "`fancy-regex`-compatible marker regex. The parser compiles it\nat scan time; an invalid regex surfaces via the\n`pattern.labelRegexInvalid` doctor diagnostic.",
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "regex"
+      ]
+    }
+  }
+}

@@ -11,7 +11,8 @@
     "DESIGN.md": "DESIGN.html",
     "AGENTS.md": "AGENTS.html",
     "CLAUDE.md": "CLAUDE.html",
-    "extension/CHANGELOG.md": "extension/CHANGELOG.html"
+    "extension/CHANGELOG.md": "extension/CHANGELOG.html",
+    "docs/release-website.md": "docs/release-website.html"
   },
   "links": [
     {

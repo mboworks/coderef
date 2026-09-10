@@ -350,6 +350,19 @@ jobs:
         working-directory: extension
         run: npm install --no-audit --no-fund
 
+      - name: test_vscode_types_version_supported_by_engine
+        working-directory: extension
+        run: |
+          node <<'JS'
+          const assert = require('node:assert/strict');
+          const pkg = require('./package.json');
+          const version = value => value.replace(/^[~^]/, '').split('.').map(Number);
+          const engine = version(pkg.engines.vscode);
+          const types = version(pkg.devDependencies['@types/vscode']);
+          const difference = types.map((part, i) => part - engine[i]).find(part => part !== 0) || 0;
+          assert.ok(difference <= 0, '@types/vscode must not exceed engines.vscode');
+          JS
+
       - name: tsc --noEmit
         working-directory: extension
         run: npx tsc --noEmit -p ./

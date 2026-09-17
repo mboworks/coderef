@@ -40,12 +40,15 @@ Triggers the cross-build in `.github/workflows/release.yml`. Produces
 the four platform tarballs the npm wrapper downloads at install time.
 
 ```bash
-git tag v0.6.0 -m "coderef v0.6.0"
+git tag -s v0.6.0 -m "coderef v0.6.0"
 git push origin v0.6.0
 ```
 
 Then watch `gh run watch --branch v0.6.0` until the `release` job
-shows green. Verify:
+shows green. The publisher validates exactly four archives and their checksums locally,
+creates or resumes a draft, uploads the eight assets, verifies remote SHA-256 digests,
+and only then publishes. An identical already-published release is left untouched;
+a different or incomplete published release fails closed. Verify:
 
 ```bash
 gh release view v0.6.0 --json assets --jq '.assets[].name'
@@ -197,8 +200,9 @@ step 1's release page is fully populated.
 
 ## Rollback
 
-- **GitHub Release**: `gh release delete v<X>` + `git tag -d v<X> &&
-  git push --delete origin v<X>`.
+- **GitHub Release**: preserve published tags and immutable assets; publish a corrected
+  version. A failed unpublished draft may be resumed after fixing the cause. Retry only the
+  failed downstream channel when the GitHub release is already complete.
 - **npm**: a published version is permanent (npm rejects republishing
   the same number). Use `npm deprecate '@mboworks/coderef@<X>' "reason"`
   and publish a patch with the fix.

@@ -1,6 +1,6 @@
-# coderef
+# coderef <img src="docs/assets/mboworks-logo.png" alt="MBO Works" width="64" height="64" align="right">
 
-[Release website](https://mboworks.github.io/coderef/)
+[Release website](https://mboworks.github.io/coderef/) · [Infrastructure and publishing](docs/infrastructure.md)
 
 Regex-driven references in source code — resolved, click-opened, and
 verified identically from VSCode and from CI. A `.coderef.jsonc` config

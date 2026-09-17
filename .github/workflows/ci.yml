@@ -8,7 +8,7 @@ on:
 # Cancel superseded runs on the same ref.
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -26,6 +26,7 @@ jobs:
           python-version: '3.13'
       - run: python3 -m unittest discover -s tools -p release_site_test.py
       - run: python3 -m unittest discover -s tools -p release_notes_test.py
+      - run: python3 -m unittest discover -s tools -p "*_test.py"
       - name: Verify configured documentation and generated links
         env:
           GH_TOKEN: ${{ github.token }}
@@ -56,6 +57,8 @@ jobs:
           rustup component add rustfmt clippy
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
 
       - name: cargo fmt --check
         run: cargo fmt --all -- --check
@@ -70,7 +73,16 @@ jobs:
         run: cargo test --all-features --locked
 
       - name: cargo build --release (smoke)
-        run: cargo build --release --locked
+        run: cargo build --release --locked --timings
+
+      - name: Preserve Cargo build timings
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cargo-build-timings
+          path: target/cargo-timings/*.html
+          retention-days: 7
+          if-no-files-found: warn
 
       - name: coderef binary --version
         run: ./target/release/coderef --version
@@ -201,6 +213,7 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
           # Separate cache from the host-triple build above; same lockfile.
           key: wasm-${{ hashFiles('Cargo.lock') }}
 
@@ -337,6 +350,7 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
           key: extension-${{ hashFiles('Cargo.lock') }}
 
       - name: Install wasm-pack
@@ -429,6 +443,7 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
           key: npm-wrapper-${{ hashFiles('Cargo.lock') }}
 
       - uses: actions/setup-node@v7
@@ -540,6 +555,9 @@ jobs:
   #      results, so an elaborate result-table step doesn't add
   #      anything reviewers can't see one click away.
   done:
+    permissions:
+      contents: read
+      actions: read
     needs: [release-site-tests, version, rust, wasm, extension, npm-wrapper, schema, docs]
     if: always()
     runs-on: ubuntu-latest
@@ -566,6 +584,25 @@ jobs:
             exit 1
           fi
           echo "done covers all $(grep -c . <<<"${declared}") workflow jobs."
+      - name: Report repository cache usage
+        if: always() && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if gh cache list --limit 10000 --json key,ref,sizeInBytes >cache-inventory.json; then
+            python3 - <<'PYTHON' >>"${GITHUB_STEP_SUMMARY}"
+          import json
+          caches = json.load(open("cache-inventory.json", encoding="utf-8"))
+          size = sum(entry["sizeInBytes"] for entry in caches)
+          print(f"Actions caches: {len(caches)} entries, {size:,} compressed bytes.")
+          print("\nLargest entries:")
+          for entry in sorted(caches, key=lambda item: item["sizeInBytes"], reverse=True)[:10]:
+              print(f"- {entry['key']}: {entry['sizeInBytes']:,} bytes ({entry['ref']})")
+          PYTHON
+          else
+            echo "Cache inventory unavailable." >>"${GITHUB_STEP_SUMMARY}"
+          fi
       - name: Fail if any dependency did not succeed
         if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
         run: exit 1

@@ -72,6 +72,20 @@ silently choosing one.
 - Prefer `Edit` over `Write` for surgical changes; reserve `Write` for full
   rewrites and brand-new files.
 
+## Git, infrastructure, and language rules
+
+Follow [GIT_RULES.md](GIT_RULES.md) for branches, PRs, CI, and releases. PR descriptions start
+with a short human-readable outcome, followed by `## AG;DR` with implementation, validation,
+portability, dependencies, and limitations. [STYLE_SH.md](STYLE_SH.md) describes shell conventions.
+Rust uses the pinned rustfmt/Clippy tools; TypeScript keeps the existing compiler and test rules.
+Do not import C++ naming or Bazel conventions into this workspace.
+
+[Infrastructure guidance](docs/infrastructure.md) documents cache writes, diagnostic artifacts,
+and publishing. Do not weaken existing gates to make CI pass. Do not commit Cargo targets,
+node_modules, local caches, or generated VSIX files. Retain the CLI conformance contract and
+`vX.Y.Z` tags. Use `CARGO_BUILD_JOBS=2` for bounded local builds when resources are constrained;
+it limits compiler jobs, not test threads or application worker pools.
+
 ## Project conventions
 
 - License: Apache-2.0.

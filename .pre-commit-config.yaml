@@ -19,6 +19,13 @@ repos:
 
   - repo: local
     hooks:
+      - id: infrastructure-tests
+        name: Test publishing and CI policies
+        entry: python3 -m unittest discover -s tools -p '*_test.py'
+        language: system
+        pass_filenames: false
+        files: ^(tools/|docs/assets/|release-site\.json$|\.github/workflows/)
+
       - id: align-md-tables
         name: Align markdown tables (idempotent)
         description: Re-runs tools/align-md-tables.py over modified .md files.

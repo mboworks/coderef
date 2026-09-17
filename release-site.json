@@ -12,7 +12,10 @@
     "AGENTS.md": "AGENTS.html",
     "CLAUDE.md": "CLAUDE.html",
     "extension/CHANGELOG.md": "extension/CHANGELOG.html",
-    "docs/release-website.md": "docs/release-website.html"
+    "docs/release-website.md": "docs/release-website.html",
+    "GIT_RULES.md": "GIT_RULES.html",
+    "STYLE_SH.md": "STYLE_SH.html",
+    "docs/infrastructure.md": "docs/infrastructure.html"
   },
   "links": [
     {

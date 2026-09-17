@@ -9,6 +9,9 @@ versions follow [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- Restrict CI cache writes to main, preserve Cargo build timings, verify draft release assets
+  before immutable publication, and add deployment-only website artwork and shared contributor rules.
+
 - Ordered release publication as GitHub assets, npm wrapper, then VS Code
   Marketplace extension, while retaining manually dispatchable downstream
   retries.

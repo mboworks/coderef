@@ -70,6 +70,7 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
+          save-if: ${{ github.ref == 'refs/heads/main' }}
           key: marketplace-${{ hashFiles('Cargo.lock') }}
 
       - name: Install wasm-pack

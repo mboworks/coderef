@@ -304,8 +304,8 @@ class CoverageIndexTest(unittest.TestCase):
             self.assertEqual(links("index.html"), ["runs/6/1/html/index.html",
                                                    "runs/5/1/html/index.html", "runs/4/10/html/index.html"])
             self.assertEqual(links("history.html"), ["runs/6/1/html/index.html",
-                "runs/2/1/html/index.html", "runs/5/1/html/index.html",
-                "runs/9/1/html/index.html", "runs/4/10/html/index.html"])
+                "runs/5/1/html/index.html", "runs/2/1/html/index.html",
+                "runs/4/10/html/index.html", "runs/9/1/html/index.html"])
             self.assertIn("PR 12 (post-merge)", (root / "index.html").read_text())
             self.assertIn("PR 12 (pre-merge)", (root / "history.html").read_text())
             snapshots = {path.relative_to(root): path.read_bytes()

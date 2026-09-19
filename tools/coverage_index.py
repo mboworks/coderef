@@ -149,7 +149,7 @@ def regenerate(root: Path) -> int:
     phases = sorted(latest.values(), key=lambda report: (
         bool(report.get("reference_time")),
         _time(report.get("reference_time") or report.get("created_at") or report.get("completed_at")),
-        report["phase"], _run_order(report)), reverse=True)
+        report["phase"] == "post-merge", _run_order(report)), reverse=True)
     visible = [report for report in phases
                if report["phase"] != "pre-merge" or (report["target"], "post-merge") not in latest]
     (root / "index.html").write_text(_render(

@@ -43,7 +43,7 @@ are read without modification. The overview shows one result per PR, ordered by 
 then open PRs. Pre-merge coverage is replaced only when a main report tests that PR's exact
 merge commit; unrelated main runs are omitted. Aggregation PR coverage is never attributed to
 its constituent PRs. PRs without pre-merge reports can still show post-merge coverage.
-`history.html` shows at most one pre-merge and one post-merge result per PR. Run creation time
+`history.html` shows at most one result per phase for each PR, with post-merge first. Run creation time
 selects the newest run within each phase, with numeric attempt ordering for retries. Late
 pre-merge reports cannot displace post-merge results. Closed unmerged PRs are omitted from both
 views and reappear when reopened. All immutable run URLs remain available, including omitted
@@ -55,6 +55,11 @@ replacing measured coverage. Manual refreshes use `gh workflow run pages.yml -f 
 the default manual dispatch still publishes the requested release. Refreshes, CI report ingestion,
 and release publishing all share the `coverage-pages` queue and read current PR state after acquiring
 it. A refresh waits for any active publication but does not wait for main CI to finish.
+Coverage ingestion requires the source attempt's `Rust coverage` job to succeed, independently
+of other CI jobs. The publisher queries all pages of that attempt's jobs, matching the attempt
+used in the artifact name. Failed, cancelled, skipped, or missing coverage leaves retained
+reports intact while PR metadata still refreshes. API failures stop publication. Historical
+runs suppressed by the old whole-workflow gate are not automatically replayed.
 
 ## Release publication
 

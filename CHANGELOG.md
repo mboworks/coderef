@@ -9,6 +9,9 @@ versions follow [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- Publish successful coverage despite unrelated CI failures, and put post-merge before pre-merge
+  within each PR in the two-phase coverage view.
+
 - Refresh coverage overview ordering and visibility on PR merge, closure, or reopening,
   without waiting for main CI; support manual coverage-only refreshes.
 - Add bounded Rust coverage CI with immutable per-run/per-attempt LCOV and HTML artifacts.

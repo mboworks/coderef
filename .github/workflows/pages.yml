@@ -167,8 +167,7 @@ jobs:
     if: >-
       github.event_name == 'pull_request_target' ||
       (github.event_name == 'workflow_dispatch' && inputs.coverage_refresh) ||
-      (github.event_name == 'workflow_run' && github.event.workflow_run.name == 'CI' &&
-       github.event.workflow_run.conclusion == 'success')
+      (github.event_name == 'workflow_run' && github.event.workflow_run.name == 'CI')
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -199,8 +198,21 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: '3.13'
-      - name: Download immutable coverage attempt
+      - name: Check coverage job result
+        id: coverage-result
         if: github.event_name == 'workflow_run'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+        run: |
+          set -euo pipefail
+          gh api --paginate --slurp \
+            "repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/attempts/${RUN_ATTEMPT}/jobs?per_page=100" > coverage-jobs.json
+          eligible="$(jq 'any(.[].jobs[]; .name == "Rust coverage" and .conclusion == "success")' coverage-jobs.json)"
+          echo "eligible=${eligible}" >> "${GITHUB_OUTPUT}"
+      - name: Download immutable coverage attempt
+        if: steps.coverage-result.outputs.eligible == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_ID: ${{ github.event.workflow_run.id }}
@@ -210,7 +222,7 @@ jobs:
           gh run download "${RUN_ID}" --repo "${GITHUB_REPOSITORY}" \
             --name "coverage-${RUN_ID}-${RUN_ATTEMPT}" --dir report
       - name: Add target and reference metadata
-        if: github.event_name == 'workflow_run'
+        if: steps.coverage-result.outputs.eligible == 'true'
         env:
           RUN_ID: ${{ github.event.workflow_run.id }}
           RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
@@ -250,7 +262,7 @@ jobs:
               head_sha:$sha}' report/metadata.json > report/metadata.tmp
           mv report/metadata.tmp report/metadata.json
       - name: Archive incoming coverage report
-        if: github.event_name == 'workflow_run'
+        if: steps.coverage-result.outputs.eligible == 'true'
         run: |
           set -euo pipefail
           python3 source/tools/coverage_index.py archive site/coverage --incoming report

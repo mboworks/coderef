@@ -64,6 +64,35 @@ class InfrastructureTest(unittest.TestCase):
         self.assertIn("      actions: read\n", permissions)
         self.assertIn("      pull-requests: read\n", permissions)
 
+    def test_coverage_job_gate_only_successful_source_attempt_is_eligible(self):
+        script = self.workflow_script("pages", "Check coverage job result")
+        for conclusion in ("success", "failure", "cancelled", "skipped", None, "missing"):
+            with self.subTest(conclusion=conclusion), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                jobs = [{"name": "Rust workspace", "conclusion": "failure"}]
+                if conclusion != "missing":
+                    jobs.append({"name": "Rust coverage", "conclusion": conclusion})
+                # Exercise pagination: the coverage job is on the second page.
+                (root / "jobs.json").write_text(json.dumps([{"jobs": jobs[:1]}, {"jobs": jobs[1:]}]))
+                mock = 'gh() { printf "%s\\n" "$@" > arguments; cat jobs.json; };\n'
+                subprocess.run(["bash", "-c", mock + script], cwd=root, check=True,
+                               env={**os.environ, "RUN_ID": "123", "RUN_ATTEMPT": "2",
+                                    "GITHUB_REPOSITORY": "mboworks/coderef",
+                                    "GITHUB_OUTPUT": str(root / "outputs")})
+                self.assertEqual((root / "outputs").read_text(),
+                                 f"eligible={str(conclusion == 'success').lower()}\n")
+                self.assertEqual((root / "arguments").read_text().splitlines(), [
+                    "api", "--paginate", "--slurp",
+                    "repos/mboworks/coderef/actions/runs/123/attempts/2/jobs?per_page=100"])
+                # API errors must fail closed, never consume an artifact.
+                (root / "outputs").unlink()
+                result = subprocess.run(["bash", "-c", 'gh() { return 1; };\n' + script],
+                                        cwd=root, env={**os.environ, "RUN_ID": "123", "RUN_ATTEMPT": "2",
+                                            "GITHUB_REPOSITORY": "mboworks/coderef",
+                                            "GITHUB_OUTPUT": str(root / "outputs")})
+                self.assertNotEqual(result.returncode, 0)
+                self.assertFalse((root / "outputs").exists())
+
     def test_coverage_generation_shell_produces_expected_layout(self):
         script = self.workflow_script("ci", "Generate LCOV and HTML coverage")
         script = re.sub(r"\$\{\{.*?\}\}", "123", script)
@@ -185,8 +214,8 @@ class InfrastructureTest(unittest.TestCase):
             ("workflow_dispatch", "", "", "", False, (True, False)),
             ("workflow_dispatch", "", "", "", True, (False, True)),
             ("workflow_run", "CI", "success", "pull_request", False, (False, True)),
-            ("workflow_run", "CI", "failure", "push", False, (False, False)),
-            ("workflow_run", "CI", "cancelled", "push", False, (False, False)),
+            ("workflow_run", "CI", "failure", "push", False, (False, True)),
+            ("workflow_run", "CI", "cancelled", "push", False, (False, True)),
             ("workflow_run", "Release", "success", "push", False, (True, False)),
             ("workflow_run", "Other", "success", "push", False, (False, False)),
         ):
@@ -206,7 +235,7 @@ class InfrastructureTest(unittest.TestCase):
         self.assertNotIn("github.event.pull_request.head", coverage)
         for step in ("Download immutable coverage attempt", "Add target and reference metadata",
                      "Archive incoming coverage report"):
-            self.assertIn(f"      - name: {step}\n        if: github.event_name == 'workflow_run'", coverage)
+            self.assertIn(f"      - name: {step}\n        if: steps.coverage-result.outputs.eligible == 'true'", coverage)
         refresh = coverage.split("      - name: Refresh metadata and publish retained reports", 1)[1]
         self.assertNotIn("workflow_run", refresh)
         self.assertNotIn("--incoming", refresh)

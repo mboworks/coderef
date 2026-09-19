@@ -27,6 +27,13 @@ reports with `cargo-llvm-cov`, and uploads each run and retry as an immutable ar
 each run and attempt under `coverage/runs/`, and rebuilds an overview ordered by reference time.
 It queries all pull-request states so closed unmerged reports are hidden from the overview while
 remaining directly available in the archive; reopened reports become visible again.
+CI requires both `lcov.info` and `html/index.html` before uploading. The publisher has explicit
+Actions and pull-request read permissions, preserves the rest of the retained Pages tree, and
+normalizes older artifacts containing `html/html/index.html`. Each overview link resolves to
+`coverage/runs/<run>/<attempt>/html/index.html`. PR runs without an associated PR in the event
+payload use the artifact's `refs/pull/<number>/merge` reference; unidentified PR runs fail instead
+of being mislabeled as main. Regression tests execute the workflow shell commands, archive and
+index reports, push to a temporary Git remote, and verify the staged site and report links.
 
 ## Release publication
 

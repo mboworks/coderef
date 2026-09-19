@@ -10,6 +10,8 @@ versions follow [SemVer](https://semver.org/spec/v2.0.0.html).
 ### Changed
 
 - Add bounded Rust coverage CI with immutable per-run/per-attempt LCOV and HTML artifacts.
+- Publish retained coverage history to Pages, including late-attempt archives and pull-request
+  state filtering.
 - Restrict CI cache writes to main, preserve Cargo build timings, verify draft release assets
   before immutable publication, and add deployment-only website artwork and shared contributor rules.
 

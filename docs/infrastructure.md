@@ -23,9 +23,10 @@ they do not measure npm installation or all network preparation time.
 
 The Rust coverage job bounds compiler workers with `CARGO_BUILD_JOBS=2`, generates LCOV and HTML
 reports with `cargo-llvm-cov`, and uploads each run and retry as an immutable artifact named from
-`github.run_id` and `github.run_attempt`. Coverage artifacts retain for 30 days and include the
-commit and ref metadata needed to distinguish late or retried results. Coderef has no coverage
-Pages publisher, so artifact history is the durable review surface.
+`github.run_id` and `github.run_attempt`. The Pages workflow consumes those artifacts, archives
+each run and attempt under `coverage/runs/`, and rebuilds an overview ordered by reference time.
+It queries all pull-request states so closed unmerged reports are hidden from the overview while
+remaining directly available in the archive; reopened reports become visible again.
 
 ## Release publication
 

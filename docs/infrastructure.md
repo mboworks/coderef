@@ -60,6 +60,19 @@ of other CI jobs. The publisher queries all pages of that attempt's jobs, matchi
 used in the artifact name. Failed, cancelled, skipped, or missing coverage leaves retained
 reports intact while PR metadata still refreshes. API failures stop publication. Historical
 runs suppressed by the old whole-workflow gate are not automatically replayed.
+To recover an unpublished report without rerunning CI, use:
+
+```sh
+gh workflow run pages.yml -f source_run_id=123456789
+```
+
+Supply the original completed CI run ID. Its latest attempt must have successful Rust coverage
+and a retained artifact. Only this repository's `ci.yml` runs are accepted; release workflows
+do not produce these artifacts. Backfill uses the original tested SHA, timestamps, run ID,
+attempt, and PR identity, and shares the serialized publication queue. Older reports are
+archived without replacing newer results in the same phase. Expired artifacts cannot be
+recovered this way. With no source run, `coverage_refresh=true` remains a metadata-only refresh;
+with neither input, manual dispatch retains its release-publishing behavior.
 
 ## Release publication
 

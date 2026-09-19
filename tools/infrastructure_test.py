@@ -64,6 +64,45 @@ class InfrastructureTest(unittest.TestCase):
         self.assertIn("      actions: read\n", permissions)
         self.assertIn("      pull-requests: read\n", permissions)
 
+    def test_coverage_backfill_source_validation_preserves_original_identity(self):
+        script = self.workflow_script("pages", "Resolve coverage source")
+        record = {"id": 123, "run_attempt": 2, "status": "completed",
+                  "path": ".github/workflows/ci.yml", "head_sha": "original-sha",
+                  "created_at": "2026-01-01T00:00:00Z", "updated_at": "2026-01-02T00:00:00Z",
+                  "event": "pull_request", "head_branch": "feature", "pull_requests": [{"number": 12}]}
+        for run_id, attempt, changes, valid in (
+            ("123", "", {}, True), ("123", "2", {}, True),
+            ("123", "", {"event": "push", "head_branch": "main", "pull_requests": []}, True),
+            ("0", "", {}, False), ("../123", "", {}, False), ("123", "bad", {}, False),
+            ("123", "", {"status": "in_progress"}, False),
+            ("123", "", {"path": ".github/workflows/release.yml"}, False),
+            ("123", "", {"path": ".github/workflows/pages.yml"}, False),
+        ):
+            with self.subTest(run_id=run_id, attempt=attempt, changes=changes), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory)
+                source = {**record, **changes}
+                (root / "source.json").write_text(json.dumps(source))
+                mock = 'gh() { printf "%s\\n" "$@" > arguments; cat source.json; };\n'
+                result = subprocess.run(["bash", "-c", mock + script], cwd=root,
+                    env={**os.environ, "SOURCE_RUN_ID": run_id, "SOURCE_ATTEMPT": attempt,
+                         "GITHUB_REPOSITORY": "mboworks/coderef", "GITHUB_OUTPUT": str(root / "outputs")})
+                self.assertEqual(result.returncode == 0, valid)
+                if not valid:
+                    self.assertFalse((root / "outputs").exists())
+                    continue
+                expected = {key: str(source[key]) for key in
+                            ("id", "run_attempt", "head_sha", "created_at", "updated_at", "event", "head_branch")}
+                expected["pr_number"] = "12" if source["pull_requests"] else ""
+                self.assertEqual(dict(line.split("=", 1) for line in (root / "outputs").read_text().splitlines()), expected)
+                suffix = f"/attempts/{attempt}" if attempt else ""
+                self.assertEqual((root / "arguments").read_text().splitlines(),
+                    ["api", f"repos/mboworks/coderef/actions/runs/123{suffix}"])
+        workflow = (ROOT / ".github/workflows/pages.yml").read_text()
+        consumers = workflow.split("      - name: Check coverage job result", 1)[1]
+        self.assertNotIn("${{ github.event.workflow_run.", consumers)
+        for field in ("id", "run_attempt", "head_sha", "created_at", "updated_at", "event", "head_branch", "pr_number"):
+            self.assertIn("${{ steps.coverage-source.outputs." + field + " }}", consumers)
+
     def test_coverage_job_gate_only_successful_source_attempt_is_eligible(self):
         script = self.workflow_script("pages", "Check coverage job result")
         for conclusion in ("success", "failure", "cancelled", "skipped", None, "missing"):
@@ -207,26 +246,29 @@ class InfrastructureTest(unittest.TestCase):
         for job in ("publish", "coverage"):
             body = text.split(f"\n  {job}:\n", 1)[1]
             gates[job] = body.split("    if: >-\n", 1)[1].split("    runs-on:", 1)[0]
-        for event, name, conclusion, source, manual, expected in (
-            ("push", "", "", "", False, (True, False)),
-            ("pull_request_target", "", "", "", False, (False, True)),
-            ("pull_request", "", "", "", False, (False, False)),
-            ("workflow_dispatch", "", "", "", False, (True, False)),
-            ("workflow_dispatch", "", "", "", True, (False, True)),
-            ("workflow_run", "CI", "success", "pull_request", False, (False, True)),
-            ("workflow_run", "CI", "failure", "push", False, (False, True)),
-            ("workflow_run", "CI", "cancelled", "push", False, (False, True)),
-            ("workflow_run", "Release", "success", "push", False, (True, False)),
-            ("workflow_run", "Other", "success", "push", False, (False, False)),
+        for event, name, conclusion, source, manual, source_run, expected in (
+            ("push", "", "", "", False, "", (True, False)),
+            ("pull_request_target", "", "", "", False, "", (False, True)),
+            ("pull_request", "", "", "", False, "", (False, False)),
+            ("workflow_dispatch", "", "", "", False, "", (True, False)),
+            ("workflow_dispatch", "", "", "", True, "", (False, True)),
+            ("workflow_run", "CI", "success", "pull_request", False, "", (False, True)),
+            ("workflow_run", "CI", "failure", "push", False, "", (False, True)),
+            ("workflow_run", "CI", "cancelled", "push", False, "", (False, True)),
+            ("workflow_run", "Release", "success", "push", False, "", (True, False)),
+            ("workflow_run", "Other", "success", "push", False, "", (False, False)),
+            ("workflow_dispatch", "", "", "", False, "123", (False, True)),
+            ("workflow_dispatch", "", "", "", True, "123", (False, True)),
         ):
             with self.subTest(event=event, name=name, conclusion=conclusion, manual=manual):
                 values = {"github.event_name": event, "github.event.workflow_run.name": name,
                           "github.event.workflow_run.conclusion": conclusion,
-                          "github.event.workflow_run.event": source, "inputs.coverage_refresh": manual}
+                          "github.event.workflow_run.event": source, "inputs.coverage_refresh": manual, "inputs.source_run_id": source_run}
                 actual = []
                 for gate in gates.values():
                     expression = re.sub(r"(?:github|inputs)\.[a-z_.]+", lambda m: repr(values[m[0]]), gate)
-                    expression = expression.replace("&&", " and ").replace("||", " or ").replace("!", " not ")
+                    expression = expression.replace("&&", " and ").replace("||", " or ")
+                    expression = re.sub(r"!(?!=)", " not ", expression)
                     # Evaluate only trusted repository job conditions with literal event values.
                     actual.append(eval(" ".join(expression.split()), {"__builtins__": {}}))
                 self.assertEqual(tuple(actual), expected)

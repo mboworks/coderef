@@ -18,6 +18,10 @@ on:
         description: Refresh retained coverage metadata only (no release publication)
         type: boolean
         default: false
+      source_run_id:
+        description: Optional completed CI run whose retained coverage should be published
+        type: string
+        required: false
       tag:
         description: Published release tag (empty selects latest)
         type: string
@@ -40,7 +44,7 @@ jobs:
   publish:
     if: >-
       github.event_name == 'push' ||
-      (github.event_name == 'workflow_dispatch' && !inputs.coverage_refresh) ||
+      (github.event_name == 'workflow_dispatch' && !inputs.coverage_refresh && inputs.source_run_id == '') ||
       (github.event_name == 'workflow_run' && github.event.workflow_run.name == 'Release' &&
        github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
@@ -166,7 +170,7 @@ jobs:
   coverage:
     if: >-
       github.event_name == 'pull_request_target' ||
-      (github.event_name == 'workflow_dispatch' && inputs.coverage_refresh) ||
+      (github.event_name == 'workflow_dispatch' && (inputs.coverage_refresh || inputs.source_run_id != '')) ||
       (github.event_name == 'workflow_run' && github.event.workflow_run.name == 'CI')
     runs-on: ubuntu-latest
     permissions:
@@ -198,13 +202,35 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: '3.13'
-      - name: Check coverage job result
-        id: coverage-result
-        if: github.event_name == 'workflow_run'
+      - name: Resolve coverage source
+        id: coverage-source
+        if: github.event_name == 'workflow_run' || inputs.source_run_id != ''
         env:
           GH_TOKEN: ${{ github.token }}
-          RUN_ID: ${{ github.event.workflow_run.id }}
-          RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+          SOURCE_RUN_ID: ${{ github.event.workflow_run.id || inputs.source_run_id }}
+          SOURCE_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+        run: |
+          set -euo pipefail
+          [[ "${SOURCE_RUN_ID}" =~ ^[1-9][0-9]*$ ]] || exit 1
+          endpoint="repos/${GITHUB_REPOSITORY}/actions/runs/${SOURCE_RUN_ID}"
+          # Automatic events retain their exact attempt even if a retry starts meanwhile.
+          if [[ -n "${SOURCE_ATTEMPT}" ]]; then
+            [[ "${SOURCE_ATTEMPT}" =~ ^[1-9][0-9]*$ ]] || exit 1
+            endpoint="${endpoint}/attempts/${SOURCE_ATTEMPT}"
+          fi
+          gh api "${endpoint}" > coverage-run.json
+          jq --exit-status '.status == "completed" and .path == ".github/workflows/ci.yml"' \
+            coverage-run.json > /dev/null
+          jq -r '{id, run_attempt, head_sha, created_at, updated_at, event, head_branch,
+            pr_number: (.pull_requests[0].number // "")} | to_entries[] | "\(.key)=\(.value)"' \
+            coverage-run.json >> "${GITHUB_OUTPUT}"
+      - name: Check coverage job result
+        id: coverage-result
+        if: github.event_name == 'workflow_run' || inputs.source_run_id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ steps.coverage-source.outputs.id }}
+          RUN_ATTEMPT: ${{ steps.coverage-source.outputs.run_attempt }}
         run: |
           set -euo pipefail
           gh api --paginate --slurp \
@@ -215,8 +241,8 @@ jobs:
         if: steps.coverage-result.outputs.eligible == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-          RUN_ID: ${{ github.event.workflow_run.id }}
-          RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+          RUN_ID: ${{ steps.coverage-source.outputs.id }}
+          RUN_ATTEMPT: ${{ steps.coverage-source.outputs.run_attempt }}
         run: |
           set -euo pipefail
           gh run download "${RUN_ID}" --repo "${GITHUB_REPOSITORY}" \
@@ -224,14 +250,14 @@ jobs:
       - name: Add target and reference metadata
         if: steps.coverage-result.outputs.eligible == 'true'
         env:
-          RUN_ID: ${{ github.event.workflow_run.id }}
-          RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
-          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
-          CREATED_AT: ${{ github.event.workflow_run.created_at }}
-          COMPLETED_AT: ${{ github.event.workflow_run.updated_at }}
-          PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
-          RUN_EVENT: ${{ github.event.workflow_run.event }}
-          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          RUN_ID: ${{ steps.coverage-source.outputs.id }}
+          RUN_ATTEMPT: ${{ steps.coverage-source.outputs.run_attempt }}
+          HEAD_SHA: ${{ steps.coverage-source.outputs.head_sha }}
+          CREATED_AT: ${{ steps.coverage-source.outputs.created_at }}
+          COMPLETED_AT: ${{ steps.coverage-source.outputs.updated_at }}
+          PR_NUMBER: ${{ steps.coverage-source.outputs.pr_number }}
+          RUN_EVENT: ${{ steps.coverage-source.outputs.event }}
+          HEAD_BRANCH: ${{ steps.coverage-source.outputs.head_branch }}
         run: |
           set -euo pipefail
           if [[ "${RUN_EVENT}" == pull_request ]]; then

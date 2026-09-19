@@ -34,6 +34,13 @@ normalizes older artifacts containing `html/html/index.html`. Each overview link
 payload use the artifact's `refs/pull/<number>/merge` reference; unidentified PR runs fail instead
 of being mislabeled as main. Regression tests execute the workflow shell commands, archive and
 index reports, push to a temporary Git remote, and verify the staged site and report links.
+The overview uses the same report table columns as the C++ repositories: Report, Data, Source,
+Completed, Commit, Workflow, Lines, Branches, and Functions. Coderef's Python generator computes
+rates from summed LCOV counters, links each immutable report and its LCOV/metadata downloads,
+and displays completion times in UTC. Zero or unavailable metric totals display `n/a`, including
+branch coverage when Rust instrumentation produces no branch measurements. Existing archives
+are read without modification; the overview retains every visible run and retry in reference-time
+order. The coverage figures describe Rust, not the Python or TypeScript scripts.
 
 ## Release publication
 

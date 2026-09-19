@@ -406,6 +406,8 @@ jobs:
           node <<'JS'
           const assert = require('node:assert/strict');
           const pkg = require('./package.json');
+          const lock = require('./package-lock.json');
+          assert.equal(lock.packages[''].engines.vscode, pkg.engines.vscode, 'VS Code engine must match the lockfile');
           const version = value => value.replace(/^[~^]/, '').split('.').map(Number);
           const engine = version(pkg.engines.vscode);
           const types = version(pkg.devDependencies['@types/vscode']);

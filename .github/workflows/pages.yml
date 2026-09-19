@@ -5,12 +5,19 @@ name: Publish release site
 on:
   push:
     branches: [main]
+  # Lifecycle refresh executes only trusted main code, never a PR head.
+  pull_request_target:
+    types: [closed, reopened]
   # Releases created with GITHUB_TOKEN do not trigger release events.
   workflow_run:
     workflows: [Release, CI]
     types: [completed]
   workflow_dispatch:
     inputs:
+      coverage_refresh:
+        description: Refresh retained coverage metadata only (no release publication)
+        type: boolean
+        default: false
       tag:
         description: Published release tag (empty selects latest)
         type: string
@@ -32,8 +39,9 @@ concurrency:
 jobs:
   publish:
     if: >-
-      github.event_name != 'workflow_run' ||
-      (github.event.workflow_run.name == 'Release' &&
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' && !inputs.coverage_refresh) ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.name == 'Release' &&
        github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
     permissions:
@@ -157,9 +165,10 @@ jobs:
 
   coverage:
     if: >-
-      github.event_name == 'workflow_run' &&
-      github.event.workflow_run.name == 'CI' &&
-      github.event.workflow_run.conclusion == 'success'
+      github.event_name == 'pull_request_target' ||
+      (github.event_name == 'workflow_dispatch' && inputs.coverage_refresh) ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.name == 'CI' &&
+       github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -191,6 +200,7 @@ jobs:
         with:
           python-version: '3.13'
       - name: Download immutable coverage attempt
+        if: github.event_name == 'workflow_run'
         env:
           GH_TOKEN: ${{ github.token }}
           RUN_ID: ${{ github.event.workflow_run.id }}
@@ -200,6 +210,7 @@ jobs:
           gh run download "${RUN_ID}" --repo "${GITHUB_REPOSITORY}" \
             --name "coverage-${RUN_ID}-${RUN_ATTEMPT}" --dir report
       - name: Add target and reference metadata
+        if: github.event_name == 'workflow_run'
         env:
           RUN_ID: ${{ github.event.workflow_run.id }}
           RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
@@ -238,21 +249,24 @@ jobs:
               reference_time:$completed, created_at:$created, completed_at:$completed,
               head_sha:$sha}' report/metadata.json > report/metadata.tmp
           mv report/metadata.tmp report/metadata.json
-      - name: Index and archive coverage history
+      - name: Archive incoming coverage report
+        if: github.event_name == 'workflow_run'
+        run: |
+          set -euo pipefail
+          python3 source/tools/coverage_index.py archive site/coverage --incoming report
+      - name: Refresh metadata and publish retained reports
         env:
           GH_TOKEN: ${{ github.token }}
-          RUN_ID: ${{ github.event.workflow_run.id }}
         run: |
           set -euo pipefail
           gh api --paginate --slurp "repos/${GITHUB_REPOSITORY}/pulls?state=all&per_page=100" > pulls.json
-          python3 source/tools/coverage_index.py archive site/coverage --incoming report
           python3 source/tools/coverage_index.py history site/coverage pulls.json
           python3 source/tools/coverage_index.py regenerate site/coverage
           git -C site config user.name 'github-actions[bot]'
           git -C site config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git -C site add coverage
           if ! git -C site diff --cached --quiet; then
-            git -C site commit -m "coverage: retain run ${RUN_ID:-unknown}"
+            git -C site commit -m "coverage: publish reports and refresh PR metadata"
             git -C site push origin HEAD:coverage-pages
           fi
           mkdir -p public

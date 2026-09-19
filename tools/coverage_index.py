@@ -91,6 +91,7 @@ def _pulls(path: Path) -> dict[int, dict]:
 
 
 def history(root: Path, pulls_path: Path | None = None) -> list[dict]:
+    root.mkdir(parents=True, exist_ok=True)
     pulls = _pulls(pulls_path) if pulls_path else {}
     reports = []
     for report in _reports(root):

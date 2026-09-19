@@ -224,6 +224,48 @@ class CoverageIndexTest(unittest.TestCase):
             links = re.findall(r'href="(runs/[^"]+/html/index.html)"', html)
             self.assertEqual(links, [f"runs/{run}/1/html/index.html" for run in (1, 2, 3, 4)])
 
+    def test_history_refresh_merge_reorders_without_replacing_reports(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "site"
+            incoming = Path(directory) / "incoming"
+            self.report(incoming)
+            (incoming / "lcov.info").write_text("LF:10\nLH:9\nFNF:2\nFNH:1\n")
+            for number in (12, 13):
+                (incoming / "metadata.json").write_text(json.dumps({
+                    "run_id": str(number), "target": f"pr/{number}", "head_sha": f"tested-{number}",
+                    "created_at": "2026-01-01T00:00:00Z", "completed_at": "2026-01-01T00:01:00Z"}))
+                archive(root, incoming)
+            snapshots = {path.relative_to(root): path.read_bytes()
+                         for path in (root / "runs").rglob("*") if path.is_file()}
+            pulls = Path(directory) / "pulls.json"
+            values = [{"number": 12, "state": "closed", "merged_at": "2026-01-02T00:00:00Z"},
+                      {"number": 13, "state": "open", "merged_at": None}]
+            pulls.write_text(json.dumps(values))
+            history(root, pulls)
+            regenerate(root)
+            before = (root / "index.html").read_text()
+            self.assertLess(before.index("PR #12"), before.index("PR #13"))
+            values[1].update(state="closed", merged_at="2026-01-03T00:00:00Z")
+            pulls.write_text(json.dumps(values))
+            reports = history(root, pulls)
+            regenerate(root)
+            after = (root / "index.html").read_text()
+            self.assertLess(after.index("PR #13"), after.index("PR #12"))
+            row = next(item for item in reports if item["target"] == "pr/13")
+            self.assertEqual(row["head_sha"], "tested-13")
+            self.assertEqual(row["run_id"], "13")
+            self.assertEqual(row["coverage"]["lines"]["percent"], 90.0)
+            self.assertEqual({path.relative_to(root): path.read_bytes()
+                              for path in (root / "runs").rglob("*") if path.is_file()}, snapshots)
+
+    def test_history_refresh_before_first_report_renders_empty_overview(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "coverage"
+            self.assertEqual(history(root), [])
+            self.assertEqual(regenerate(root), 0)
+            self.assertIn("No coverage reports", (root / "index.html").read_text())
+            self.assertTrue((root / "history.html").is_file())
+
 
 if __name__ == "__main__":
     unittest.main()

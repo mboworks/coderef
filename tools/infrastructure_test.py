@@ -110,7 +110,8 @@ class InfrastructureTest(unittest.TestCase):
                     self.assertEqual(actual["head_sha"], "abc")
 
     def test_coverage_publish_archive_push_and_stage_preserve_site(self):
-        script = self.workflow_script("pages", "Index and archive coverage history")
+        refresh = self.workflow_script("pages", "Refresh metadata and publish retained reports")
+        script = self.workflow_script("pages", "Archive incoming coverage report") + "\n" + refresh
         with tempfile.TemporaryDirectory() as directory:
             work = Path(directory)
             (work / "source").symlink_to(ROOT, target_is_directory=True)
@@ -124,7 +125,7 @@ class InfrastructureTest(unittest.TestCase):
             (report / "html/index.html").write_text('<html><head></head><body>coverage</body></html>')
             (report / "lcov.info").write_text('SF:src/lib.rs\nDA:1,1\nend_of_record\n')
             (report / "metadata.json").write_text(json.dumps({"run_id": "7", "run_attempt": "2",
-                                                            "target": "main"}))
+                                                            "target": "pr/12"}))
             remote = work / "remote.git"
             for command in (["git", "init", "--bare", str(remote)],
                             ["git", "init", "-b", "coverage-pages", str(site)],
@@ -147,6 +148,71 @@ class InfrastructureTest(unittest.TestCase):
             self.assertEqual(json.loads(retained)["run_id"], "7")
             self.assertNotIn("mboworks favicons", (site / "index.html").read_text())
             self.assertIn("mboworks favicons", (work / "public/index.html").read_text())
+            snapshots = {path.relative_to(site): path.read_bytes()
+                         for path in (site / "coverage/runs").rglob("*") if path.is_file()}
+            report.rename(work / "original-input")
+            # Refresh must work without a downloaded artifact or triggering CI identity.
+            env.pop("RUN_ID")
+            for state, merged_at, visible in (("closed", "2026-01-02T00:00:00Z", True),
+                                               ("closed", None, False), ("open", None, True)):
+                (work / "api-pulls.json").write_text(json.dumps([[{
+                    "number": 12, "state": state, "merged_at": merged_at}]]))
+                command = 'gh() { cat api-pulls.json; };\n' + refresh
+                subprocess.run(["bash", "-c", command], cwd=work, env=env,
+                               check=True, capture_output=True)
+                row = json.loads((site / "coverage/history.json").read_text())[0]
+                self.assertEqual(row["visible"], visible)
+                self.assertEqual(row["reference_time"], merged_at)
+                self.assertEqual("PR 12" in (work / "public/coverage/index.html").read_text(), visible)
+                self.assertEqual({path.relative_to(site): path.read_bytes()
+                                  for path in (site / "coverage/runs").rglob("*") if path.is_file()},
+                                 snapshots)
+
+
+    def test_coverage_refresh_workflow_routes_events_to_trusted_publisher(self):
+        text = (ROOT / ".github/workflows/pages.yml").read_text()
+        self.assertIn("pull_request_target:\n    types: [closed, reopened]", text)
+        self.assertIn("  group: coverage-pages\n  queue: max\n  cancel-in-progress: false", text)
+        self.assertIn("      coverage_refresh:\n", text)
+        gates = {}
+        for job in ("publish", "coverage"):
+            body = text.split(f"\n  {job}:\n", 1)[1]
+            gates[job] = body.split("    if: >-\n", 1)[1].split("    runs-on:", 1)[0]
+        for event, name, conclusion, source, manual, expected in (
+            ("push", "", "", "", False, (True, False)),
+            ("pull_request_target", "", "", "", False, (False, True)),
+            ("pull_request", "", "", "", False, (False, False)),
+            ("workflow_dispatch", "", "", "", False, (True, False)),
+            ("workflow_dispatch", "", "", "", True, (False, True)),
+            ("workflow_run", "CI", "success", "pull_request", False, (False, True)),
+            ("workflow_run", "CI", "failure", "push", False, (False, False)),
+            ("workflow_run", "CI", "cancelled", "push", False, (False, False)),
+            ("workflow_run", "Release", "success", "push", False, (True, False)),
+            ("workflow_run", "Other", "success", "push", False, (False, False)),
+        ):
+            with self.subTest(event=event, name=name, conclusion=conclusion, manual=manual):
+                values = {"github.event_name": event, "github.event.workflow_run.name": name,
+                          "github.event.workflow_run.conclusion": conclusion,
+                          "github.event.workflow_run.event": source, "inputs.coverage_refresh": manual}
+                actual = []
+                for gate in gates.values():
+                    expression = re.sub(r"(?:github|inputs)\.[a-z_.]+", lambda m: repr(values[m[0]]), gate)
+                    expression = expression.replace("&&", " and ").replace("||", " or ").replace("!", " not ")
+                    # Evaluate only trusted repository job conditions with literal event values.
+                    actual.append(eval(" ".join(expression.split()), {"__builtins__": {}}))
+                self.assertEqual(tuple(actual), expected)
+        coverage = text.split("\n  coverage:\n", 1)[1]
+        self.assertIn("          ref: main\n          path: source", coverage)
+        self.assertNotIn("github.event.pull_request.head", coverage)
+        for step in ("Download immutable coverage attempt", "Add target and reference metadata",
+                     "Archive incoming coverage report"):
+            self.assertIn(f"      - name: {step}\n        if: github.event_name == 'workflow_run'", coverage)
+        refresh = coverage.split("      - name: Refresh metadata and publish retained reports", 1)[1]
+        self.assertNotIn("workflow_run", refresh)
+        self.assertNotIn("--incoming", refresh)
+        self.assertIn("pulls?state=all&per_page=100", refresh)
+        self.assertLess(refresh.index("coverage_index.py history"), refresh.index("coverage_index.py regenerate"))
+        self.assertLess(refresh.index("coverage_index.py regenerate"), refresh.index("git -C site push"))
 
 
 if __name__ == '__main__':

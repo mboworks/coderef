@@ -45,6 +45,12 @@ which run is latest, so retrying an older run cannot replace a newer run. Attemp
 are compared numerically. PR rows retain their own PR CI result, sorted by merge time after merging;
 the main row contains the latest main CI result. Open PRs follow merged PRs. The coverage figures
 describe Rust, not the Python or TypeScript scripts.
+PR closure (including merge) and reopening trigger a metadata-only refresh using trusted `main`
+publisher code. This updates overview ordering and visibility without downloading artifacts or
+replacing measured coverage. Manual refreshes use `gh workflow run pages.yml -f coverage_refresh=true`;
+the default manual dispatch still publishes the requested release. Refreshes, CI report ingestion,
+and release publishing all share the `coverage-pages` queue and read current PR state after acquiring
+it. A refresh waits for any active publication but does not wait for main CI to finish.
 
 ## Release publication
 

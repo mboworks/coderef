@@ -200,6 +200,42 @@ jobs:
           fi
 
   # ---------------------------------------------------------------------------
+  coverage:
+    name: Rust coverage
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      # Bound compiler workers on shared runners and local reproductions.
+      CARGO_BUILD_JOBS: 2
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install Rust toolchain (per rust-toolchain.toml)
+        run: rustup toolchain install
+      - uses: taiki-e/install-action@cargo-llvm-cov
+      - name: Generate LCOV and HTML coverage
+        run: |
+          set -euo pipefail
+          mkdir -p coverage
+          cargo llvm-cov --all-features --workspace --locked --lcov --output-path coverage/lcov.info
+          cargo llvm-cov report --html --output-dir coverage/html
+          printf '%s\n' \
+            '{' \
+            "  \"run_id\": \"${{ github.run_id }}\"," \
+            "  \"run_attempt\": \"${{ github.run_attempt }}\"," \
+            "  \"sha\": \"${{ github.sha }}\"," \
+            "  \"reference\": \"${{ github.ref }}\"" \
+            '}' > coverage/metadata.json
+      - name: Archive immutable coverage attempt
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-${{ github.run_id }}-${{ github.run_attempt }}
+          path: coverage
+          retention-days: 30
+          if-no-files-found: warn
+
+  # ---------------------------------------------------------------------------
   wasm:
     name: WASM build + Node smoke
     runs-on: ubuntu-latest
@@ -558,7 +594,7 @@ jobs:
     permissions:
       contents: read
       actions: read
-    needs: [release-site-tests, version, rust, wasm, extension, npm-wrapper, schema, docs]
+    needs: [release-site-tests, version, rust, coverage, wasm, extension, npm-wrapper, schema, docs]
     if: always()
     runs-on: ubuntu-latest
     steps:

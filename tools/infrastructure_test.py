@@ -23,7 +23,7 @@ class InfrastructureTest(unittest.TestCase):
         self.assertIn('retention-days: 7', artifact)
         self.assertIn('if-no-files-found: warn', artifact)
         self.assertIn("cancel-in-progress: ${{ github.event_name == 'pull_request' }}", text)
-        self.assertIn('needs: [release-site-tests, version, rust, wasm, extension, npm-wrapper, schema, docs]', text)
+        self.assertIn('needs: [release-site-tests, version, rust, coverage, wasm, extension, npm-wrapper, schema, docs]', text)
 
     def test_release_complete_publication_precedes_downstream_channels(self):
         text = (ROOT / '.github/workflows/release.yml').read_text()

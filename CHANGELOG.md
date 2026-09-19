@@ -9,6 +9,8 @@ versions follow [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- Allow serialized coverage backfill from a completed CI run without rerunning tests.
+
 - Publish successful coverage despite unrelated CI failures, and put post-merge before pre-merge
   within each PR in the two-phase coverage view.
 

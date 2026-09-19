@@ -162,7 +162,9 @@ jobs:
       github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     permissions:
+      actions: read
       contents: write
+      pull-requests: read
       pages: write
       id-token: write
     environment:
@@ -193,8 +195,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RUN_ID: ${{ github.event.workflow_run.id }}
           RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
-        run: gh run download "${RUN_ID}" --repo "${GITHUB_REPOSITORY}" \
-          --name "coverage-${RUN_ID}-${RUN_ATTEMPT}" --dir report
+        run: |
+          set -euo pipefail
+          gh run download "${RUN_ID}" --repo "${GITHUB_REPOSITORY}" \
+            --name "coverage-${RUN_ID}-${RUN_ATTEMPT}" --dir report
       - name: Add target and reference metadata
         env:
           RUN_ID: ${{ github.event.workflow_run.id }}
@@ -203,10 +207,30 @@ jobs:
           CREATED_AT: ${{ github.event.workflow_run.created_at }}
           COMPLETED_AT: ${{ github.event.workflow_run.updated_at }}
           PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+          RUN_EVENT: ${{ github.event.workflow_run.event }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
         run: |
           set -euo pipefail
-          target=main
-          if [[ -n "${PR_NUMBER}" ]]; then target="pr/${PR_NUMBER}"; fi
+          if [[ "${RUN_EVENT}" == pull_request ]]; then
+            # Fork workflow_run payloads can omit pull_requests. The CI artifact
+            # still records refs/pull/<number>/merge for the triggering run.
+            if [[ -z "${PR_NUMBER}" ]]; then
+              reference="$(jq -r .reference report/metadata.json)"
+              if [[ "${reference}" =~ ^refs/pull/([0-9]+)/merge$ ]]; then
+                PR_NUMBER="${BASH_REMATCH[1]}"
+              fi
+            fi
+            if [[ ! "${PR_NUMBER}" =~ ^[0-9]+$ ]]; then
+              echo "Cannot identify the pull request for coverage" >&2
+              exit 1
+            fi
+            target="pr/${PR_NUMBER}"
+          elif [[ "${RUN_EVENT}" == push && "${HEAD_BRANCH}" == main ]]; then
+            target=main
+          else
+            echo "Unsupported coverage source: ${RUN_EVENT}/${HEAD_BRANCH}" >&2
+            exit 1
+          fi
           jq --arg target "${target}" --arg run_id "${RUN_ID}" \
             --arg attempt "${RUN_ATTEMPT}" --arg sha "${HEAD_SHA}" \
             --arg created "${CREATED_AT}" --arg completed "${COMPLETED_AT}" \
@@ -217,6 +241,7 @@ jobs:
       - name: Index and archive coverage history
         env:
           GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
         run: |
           set -euo pipefail
           gh api --paginate --slurp "repos/${GITHUB_REPOSITORY}/pulls?state=all&per_page=100" > pulls.json

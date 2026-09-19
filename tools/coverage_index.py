@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
+from html import escape
 import shutil
 import tempfile
 from datetime import datetime, timezone
@@ -26,6 +26,15 @@ def archive(root: Path, incoming: Path | None = None) -> int:
     """Copy an incoming report into its immutable run/attempt location."""
     source = incoming or root
     metadata = _read(source / "metadata.json")
+    # Older artifacts used coverage/html as llvm-cov's output directory;
+    # llvm-cov adds its own html/ directory below that.
+    html_directory = source / "html"
+    if not (html_directory / "index.html").is_file():
+        html_directory = html_directory / "html"
+    if not (html_directory / "index.html").is_file():
+        raise ValueError("coverage report has no HTML index")
+    if not (source / "lcov.info").is_file() or not (source / "lcov.info").stat().st_size:
+        raise ValueError("coverage report has no LCOV data")
     run_id = str(metadata["run_id"])
     attempt = str(metadata.get("run_attempt", 1))
     destination = root / "runs" / run_id / attempt
@@ -36,6 +45,10 @@ def archive(root: Path, incoming: Path | None = None) -> int:
     with tempfile.TemporaryDirectory(dir=root) as temporary:
         staged = Path(temporary) / "report"
         shutil.copytree(source, staged)
+        if html_directory == source / "html/html":
+            (staged / "html/html").rename(staged / "normalized-html")
+            shutil.rmtree(staged / "html")
+            (staged / "normalized-html").rename(staged / "html")
         staged.rename(destination)
     return 1
 
@@ -82,8 +95,9 @@ def regenerate(root: Path) -> int:
     rows = ["<!doctype html><meta charset=\"utf-8\"><title>coderef coverage</title>", "<h1>coderef coverage</h1>", "<ul>"]
     for report in visible:
         target = report.get("target", "main")
-        link = f"runs/{report['path']}/html/index.html"
-        rows.append(f"<li><a href=\"{link}\">{target}</a> ({report.get('reference_time') or report.get('completed_at', 'unknown')})</li>")
+        link = f"{report['path']}/html/index.html"
+        reference_time = report.get('reference_time') or report.get('completed_at', 'unknown')
+        rows.append(f"<li><a href=\"{escape(link, quote=True)}\">{escape(target)}</a> ({escape(reference_time)})</li>")
     rows.append("</ul>")
     (root / "index.html").write_text("\n".join(rows) + "\n", encoding="utf-8")
     return len(visible)

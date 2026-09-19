@@ -102,6 +102,7 @@ def history(root: Path, pulls_path: Path | None = None) -> list[dict]:
             visible = pull.get("state") != "closed" or bool(pull.get("merged_at"))
             report["pull_request"] = number
             report["pull_state"] = pull.get("state", "unknown")
+            report["reference_time"] = pull.get("merged_at")
         report["visible"] = visible
         reports.append(report)
     reports.sort(key=lambda value: (_time(value.get("reference_time") or value.get("completed_at")), value["path"]), reverse=True)
@@ -109,11 +110,38 @@ def history(root: Path, pulls_path: Path | None = None) -> list[dict]:
     return reports
 
 
+def _run_order(report: dict) -> tuple:
+    return (_time(report.get("created_at") or report.get("completed_at") or report.get("reference_time")),
+            int(report.get("run_id", 0)), int(report.get("run_attempt", 1)))
+
+
 def regenerate(root: Path) -> int:
     reports = _read(root / "history.json") if (root / "history.json").exists() else _reports(root)
-    visible = [item for item in reports if item.get("visible", True)]
+    reports.sort(key=_run_order, reverse=True)
+    latest = {}
+    for report in reports:
+        if report.get("visible", True):
+            latest.setdefault(report.get("target", "main"), report)
+    visible = sorted(latest.values(), key=lambda report: (
+        report.get("target", "main") == "main",
+        bool(report.get("reference_time")),
+        _time(report.get("reference_time") or report.get("created_at") or report.get("completed_at")),
+        _run_order(report)), reverse=True)
+    (root / "index.html").write_text(_render(
+        root, visible, "coderef coverage reports",
+        "Latest report per target: main first, then merged PRs by merge time, then open PRs. "
+        "PR rows show PR CI coverage; main shows post-merge CI coverage. Closed unmerged PRs are omitted.",
+        _link("history.html", "All retained runs and attempts")), encoding="utf-8")
+    (root / "history.html").write_text(_render(
+        root, reports, "coderef coverage run history",
+        "All retained CI runs and attempts, newest run first, including closed PRs.",
+        _link("index.html", "Current coverage overview")), encoding="utf-8")
+    return len(visible)
+
+
+def _render(root: Path, reports: list[dict], title: str, description: str, navigation: str) -> str:
     rows = []
-    for report in visible:
+    for report in reports:
         target = report.get("target", "main")
         path = report["path"]
         label = f"PR {target[3:]}" if target.startswith("pr/") else target
@@ -153,12 +181,12 @@ def regenerate(root: Path) -> int:
              + "".join(f'<th scope="col">{heading}</th>' for heading in headings)
              + "</tr></thead><tbody>\n" + "\n".join(rows) + "\n</tbody></table></div>"
              if rows else "<p>No coverage reports are available.</p>")
-    page = f'''<!doctype html>
+    return f'''<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>coderef coverage reports</title>
+  <title>{escape(title)}</title>
   <style>
     body {{ font: 16px/1.5 system-ui, sans-serif; margin: 2rem auto; max-width: 96rem; padding: 0 1rem; }}
     a {{ color: #0969da; }}
@@ -170,15 +198,14 @@ def regenerate(root: Path) -> int:
   </style>
 </head>
 <body>
-  <h1>coderef coverage reports</h1>
-  <p>Retained CI runs and attempts, newest reference time first. PRs closed without merging are omitted.</p>
+  <h1>{escape(title)}</h1>
+  <p>{navigation}</p>
+  <p>{escape(description)}</p>
   <p>Coverage is measured for Rust. n/a means no measurements are available for that metric.</p>
   {table}
 </body>
 </html>
 '''
-    (root / "index.html").write_text(page, encoding="utf-8")
-    return len(visible)
 
 
 def _link(url: str, label: str) -> str:

@@ -33,7 +33,7 @@ jobs:
   publish:
     if: >-
       github.event_name != 'workflow_run' ||
-      (github.event.workflow_run.workflow == 'Release' &&
+      (github.event.workflow_run.name == 'Release' &&
        github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
     permissions:
@@ -158,7 +158,7 @@ jobs:
   coverage:
     if: >-
       github.event_name == 'workflow_run' &&
-      github.event.workflow_run.workflow == 'CI' &&
+      github.event.workflow_run.name == 'CI' &&
       github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     permissions:

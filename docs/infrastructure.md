@@ -39,8 +39,12 @@ Completed, Commit, Workflow, Lines, Branches, and Functions. Coderef's Python ge
 rates from summed LCOV counters, links each immutable report and its LCOV/metadata downloads,
 and displays completion times in UTC. Zero or unavailable metric totals display `n/a`, including
 branch coverage when Rust instrumentation produces no branch measurements. Existing archives
-are read without modification; the overview retains every visible run and retry in reference-time
-order. The coverage figures describe Rust, not the Python or TypeScript scripts.
+are read without modification. The overview shows the latest run per target, with main first;
+`history.html` retains every run and retry, including closed PRs. Run creation time determines
+which run is latest, so retrying an older run cannot replace a newer run. Attempts within a run
+are compared numerically. PR rows retain their own PR CI result, sorted by merge time after merging;
+the main row contains the latest main CI result. Open PRs follow merged PRs. The coverage figures
+describe Rust, not the Python or TypeScript scripts.
 
 ## Release publication
 

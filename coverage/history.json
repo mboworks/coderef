@@ -1,11 +1,41 @@
 [
   {
+    "run_id": "35462269857",
+    "run_attempt": "1",
+    "sha": "df7e20c9a0c82332622955cfaea47729f52dda33",
+    "reference": "refs/heads/main",
+    "target": "main",
+    "reference_time": "2026-09-19T18:48:36Z",
+    "created_at": "2026-09-19T18:46:28Z",
+    "completed_at": "2026-09-19T18:48:36Z",
+    "head_sha": "df7e20c9a0c82332622955cfaea47729f52dda33",
+    "path": "runs/35462269857/1",
+    "coverage": {
+      "lines": {
+        "covered": 6516,
+        "total": 7860,
+        "percent": 82.90076335877863
+      },
+      "branches": {
+        "covered": 0,
+        "total": 0,
+        "percent": null
+      },
+      "functions": {
+        "covered": 653,
+        "total": 741,
+        "percent": 88.12415654520917
+      }
+    },
+    "visible": true
+  },
+  {
     "run_id": "35462130984",
     "run_attempt": "1",
     "sha": "afc322806563bfa521c838c5e8f675525cc5586d",
     "reference": "refs/pull/136/merge",
     "target": "pr/136",
-    "reference_time": "2026-09-19T18:45:48Z",
+    "reference_time": "2026-09-19T18:46:25Z",
     "created_at": "2026-09-19T18:43:55Z",
     "completed_at": "2026-09-19T18:45:48Z",
     "head_sha": "50b14de8f153b797c26cb86fcbeb9c4c025a05d5",
@@ -28,7 +58,7 @@
       }
     },
     "pull_request": 136,
-    "pull_state": "open",
+    "pull_state": "closed",
     "visible": true
   },
   {
@@ -67,7 +97,7 @@
     "sha": "e555eb60de18de04fd4bef5afb7e7391d4e2bfb9",
     "reference": "refs/pull/135/merge",
     "target": "pr/135",
-    "reference_time": "2026-09-19T18:31:13Z",
+    "reference_time": "2026-09-19T18:34:58Z",
     "created_at": "2026-09-19T18:29:27Z",
     "completed_at": "2026-09-19T18:31:13Z",
     "head_sha": "12611b972a36b1b3b0ecf36e577a41fdca0a58f9",

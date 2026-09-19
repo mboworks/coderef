@@ -1,5 +1,35 @@
 [
   {
+    "run_id": "35461654373",
+    "run_attempt": "1",
+    "sha": "66e28a61b642a5046e4563c663ba9f8f574e51b3",
+    "reference": "refs/heads/main",
+    "target": "main",
+    "reference_time": "2026-09-19T18:36:49Z",
+    "created_at": "2026-09-19T18:35:00Z",
+    "completed_at": "2026-09-19T18:36:49Z",
+    "head_sha": "66e28a61b642a5046e4563c663ba9f8f574e51b3",
+    "path": "runs/35461654373/1",
+    "coverage": {
+      "lines": {
+        "covered": 6516,
+        "total": 7860,
+        "percent": 82.90076335877863
+      },
+      "branches": {
+        "covered": 0,
+        "total": 0,
+        "percent": null
+      },
+      "functions": {
+        "covered": 653,
+        "total": 741,
+        "percent": 88.12415654520917
+      }
+    },
+    "visible": true
+  },
+  {
     "run_id": "35461353872",
     "run_attempt": "1",
     "sha": "e555eb60de18de04fd4bef5afb7e7391d4e2bfb9",
@@ -10,8 +40,25 @@
     "completed_at": "2026-09-19T18:31:13Z",
     "head_sha": "12611b972a36b1b3b0ecf36e577a41fdca0a58f9",
     "path": "runs/35461353872/1",
+    "coverage": {
+      "lines": {
+        "covered": 6516,
+        "total": 7860,
+        "percent": 82.90076335877863
+      },
+      "branches": {
+        "covered": 0,
+        "total": 0,
+        "percent": null
+      },
+      "functions": {
+        "covered": 653,
+        "total": 741,
+        "percent": 88.12415654520917
+      }
+    },
     "pull_request": 135,
-    "pull_state": "open",
+    "pull_state": "closed",
     "visible": true
   },
   {
@@ -25,6 +72,23 @@
     "completed_at": "2026-09-19T18:15:22Z",
     "head_sha": "613e179e43db61546988e96c7e9197450fb9275b",
     "path": "runs/35460513332/1",
+    "coverage": {
+      "lines": {
+        "covered": 6516,
+        "total": 7860,
+        "percent": 82.90076335877863
+      },
+      "branches": {
+        "covered": 0,
+        "total": 0,
+        "percent": null
+      },
+      "functions": {
+        "covered": 653,
+        "total": 741,
+        "percent": 88.12415654520917
+      }
+    },
     "visible": true
   }
 ]

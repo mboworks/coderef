@@ -7,7 +7,7 @@ on:
     branches: [main]
   # Releases created with GITHUB_TOKEN do not trigger release events.
   workflow_run:
-    workflows: [Release]
+    workflows: [Release, CI]
     types: [completed]
   workflow_dispatch:
     inputs:
@@ -33,7 +33,8 @@ jobs:
   publish:
     if: >-
       github.event_name != 'workflow_run' ||
-      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+      (github.event.workflow_run.name == 'Release' &&
+       github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -151,5 +152,91 @@ jobs:
         with:
           path: public
       - name: Deploy complete site
+        id: deployment
+        uses: actions/deploy-pages@v5
+
+  coverage:
+    if: >-
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.name == 'CI' &&
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          path: source
+      - name: Restore retained Pages tree
+        working-directory: source
+        run: |
+          set -euo pipefail
+          git fetch origin
+          if git show-ref --verify --quiet refs/remotes/origin/coverage-pages; then
+            git worktree add ../site -B coverage-pages origin/coverage-pages
+          else
+            git worktree add --detach ../site
+            git -C ../site checkout --orphan coverage-pages
+            git -C ../site rm -rf .
+          fi
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - name: Download immutable coverage attempt
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+        run: gh run download "${RUN_ID}" --repo "${GITHUB_REPOSITORY}" \
+          --name "coverage-${RUN_ID}-${RUN_ATTEMPT}" --dir report
+      - name: Add target and reference metadata
+        env:
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          CREATED_AT: ${{ github.event.workflow_run.created_at }}
+          COMPLETED_AT: ${{ github.event.workflow_run.updated_at }}
+          PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+        run: |
+          set -euo pipefail
+          target=main
+          if [[ -n "${PR_NUMBER}" ]]; then target="pr/${PR_NUMBER}"; fi
+          jq --arg target "${target}" --arg run_id "${RUN_ID}" \
+            --arg attempt "${RUN_ATTEMPT}" --arg sha "${HEAD_SHA}" \
+            --arg created "${CREATED_AT}" --arg completed "${COMPLETED_AT}" \
+            '. + {target:$target, run_id:$run_id, run_attempt:$attempt,
+              reference_time:$completed, created_at:$created, completed_at:$completed,
+              head_sha:$sha}' report/metadata.json > report/metadata.tmp
+          mv report/metadata.tmp report/metadata.json
+      - name: Index and archive coverage history
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api --paginate --slurp "repos/${GITHUB_REPOSITORY}/pulls?state=all&per_page=100" > pulls.json
+          python3 source/tools/coverage_index.py archive site/coverage --incoming report
+          python3 source/tools/coverage_index.py history site/coverage pulls.json
+          python3 source/tools/coverage_index.py regenerate site/coverage
+          git -C site config user.name 'github-actions[bot]'
+          git -C site config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git -C site add coverage
+          if ! git -C site diff --cached --quiet; then
+            git -C site commit -m "coverage: retain run ${RUN_ID:-unknown}"
+            git -C site push origin HEAD:coverage-pages
+          fi
+          mkdir -p public
+          rsync --archive --exclude='.git' site/ public/
+          python3 source/tools/site_artwork.py source/docs/assets public
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: public
+      - name: Deploy coverage site
         id: deployment
         uses: actions/deploy-pages@v5

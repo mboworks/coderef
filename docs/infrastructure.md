@@ -21,6 +21,13 @@ in the final required gate. Cargo's release smoke build writes HTML timing repor
 seven days even after failure. Missing reports warn. These reports describe Cargo compilation;
 they do not measure npm installation or all network preparation time.
 
+The Rust coverage job bounds compiler workers with `CARGO_BUILD_JOBS=2`, generates LCOV and HTML
+reports with `cargo-llvm-cov`, and uploads each run and retry as an immutable artifact named from
+`github.run_id` and `github.run_attempt`. The Pages workflow consumes those artifacts, archives
+each run and attempt under `coverage/runs/`, and rebuilds an overview ordered by reference time.
+It queries all pull-request states so closed unmerged reports are hidden from the overview while
+remaining directly available in the archive; reopened reports become visible again.
+
 ## Release publication
 
 Keep `vX.Y.Z` tags and GitHub → npm → VSCode Marketplace ordering. Four platform archives plus

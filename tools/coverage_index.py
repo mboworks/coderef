@@ -10,6 +10,25 @@ import shutil
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import quote
+
+_METRICS = {"lines": ("LH", "LF"), "branches": ("BRH", "BRF"), "functions": ("FNH", "FNF")}
+_REPOSITORY = "https://github.com/mboworks/coderef"
+
+
+def _coverage(path: Path) -> dict:
+    """Sum llvm-cov's per-file LCOV counters, without averaging percentages."""
+    totals = {field: 0 for fields in _METRICS.values() for field in fields}
+    if path.exists():
+        for line in path.read_text(encoding="utf-8").splitlines():
+            field, _, value = line.partition(":")
+            if field in totals:
+                totals[field] += int(value)
+    return {
+        metric: {"covered": totals[hit], "total": totals[found],
+                 "percent": 100 * totals[hit] / totals[found] if totals[found] else None}
+        for metric, (hit, found) in _METRICS.items()
+    }
 
 
 def _read(path: Path) -> dict:
@@ -58,6 +77,7 @@ def _reports(root: Path) -> list[dict]:
     for metadata_path in sorted((root / "runs").glob("*/*/metadata.json")):
         metadata = _read(metadata_path)
         metadata["path"] = metadata_path.parent.relative_to(root).as_posix()
+        metadata["coverage"] = _coverage(metadata_path.parent / "lcov.info")
         reports.append(metadata)
     return reports
 
@@ -92,15 +112,77 @@ def history(root: Path, pulls_path: Path | None = None) -> list[dict]:
 def regenerate(root: Path) -> int:
     reports = _read(root / "history.json") if (root / "history.json").exists() else _reports(root)
     visible = [item for item in reports if item.get("visible", True)]
-    rows = ["<!doctype html><meta charset=\"utf-8\"><title>coderef coverage</title>", "<h1>coderef coverage</h1>", "<ul>"]
+    rows = []
     for report in visible:
         target = report.get("target", "main")
-        link = f"{report['path']}/html/index.html"
-        reference_time = report.get('reference_time') or report.get('completed_at', 'unknown')
-        rows.append(f"<li><a href=\"{escape(link, quote=True)}\">{escape(target)}</a> ({escape(reference_time)})</li>")
-    rows.append("</ul>")
-    (root / "index.html").write_text("\n".join(rows) + "\n", encoding="utf-8")
+        path = report["path"]
+        label = f"PR {target[3:]}" if target.startswith("pr/") else target
+        if target == "main":
+            source = _link(f"{_REPOSITORY}/tree/main", "main branch")
+        elif target.startswith("pr/"):
+            source = _link(f"{_REPOSITORY}/pull/{quote(target[3:], safe='')}", f"PR #{target[3:]}")
+        else:
+            source = escape(target)
+        completed = report.get("completed_at") or report.get("reference_time")
+        timestamp = (_time(completed).astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+                     if completed else "n/a")
+        sha = report.get("head_sha") or report.get("sha")
+        commit = _link(f"{_REPOSITORY}/commit/{quote(sha, safe='')}", sha[:7]) if sha else "n/a"
+        run_id = report.get("run_id")
+        workflow = "n/a"
+        if run_id:
+            workflow = _link(f"{_REPOSITORY}/actions/runs/{quote(str(run_id), safe='')}", f"run {run_id}")
+            attempt = report.get("run_attempt", 1)
+            if int(attempt) > 1:
+                workflow += f" (attempt {escape(str(attempt))})"
+        details = (
+            _link(f"{path}/html/index.html", label),
+            _link(f"{path}/lcov.info", "LCOV") + " · " + _link(f"{path}/metadata.json", "Metadata"),
+            source, timestamp, commit, workflow,
+        )
+        cells = [f"<td>{value}</td>" for value in details]
+        # Read LCOV for old histories too, without modifying archived snapshots.
+        metrics = report.get("coverage") or _coverage(root / path / "lcov.info")
+        for metric in _METRICS:
+            value = metrics[metric]
+            rate = "n/a" if value["percent"] is None else f'{value["percent"]:.2f}%'
+            cells.append(f'<td title="{value["covered"]}/{value["total"]}">{rate}</td>')
+        rows.append("<tr>" + "".join(cells) + "</tr>")
+    headings = ("Report", "Data", "Source", "Completed", "Commit", "Workflow", "Lines", "Branches", "Functions")
+    table = ('<div class="tableScroll"><table class="reportsTable"><thead><tr>'
+             + "".join(f'<th scope="col">{heading}</th>' for heading in headings)
+             + "</tr></thead><tbody>\n" + "\n".join(rows) + "\n</tbody></table></div>"
+             if rows else "<p>No coverage reports are available.</p>")
+    page = f'''<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>coderef coverage reports</title>
+  <style>
+    body {{ font: 16px/1.5 system-ui, sans-serif; margin: 2rem auto; max-width: 96rem; padding: 0 1rem; }}
+    a {{ color: #0969da; }}
+    .tableScroll {{ overflow-x: auto; }}
+    table {{ border-collapse: collapse; margin: 1rem 0 2rem; }}
+    th, td {{ border: 1px solid #d0d7de; padding: .35rem .65rem; text-align: right; }}
+    .reportsTable th:nth-child(-n+6), .reportsTable td:nth-child(-n+6) {{ text-align: left; }}
+    .reportsTable td:nth-child(n+7) {{ font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-variant-numeric: tabular-nums; }}
+  </style>
+</head>
+<body>
+  <h1>coderef coverage reports</h1>
+  <p>Retained CI runs and attempts, newest reference time first. PRs closed without merging are omitted.</p>
+  <p>Coverage is measured for Rust. n/a means no measurements are available for that metric.</p>
+  {table}
+</body>
+</html>
+'''
+    (root / "index.html").write_text(page, encoding="utf-8")
     return len(visible)
+
+
+def _link(url: str, label: str) -> str:
+    return f'<a href="{escape(url, quote=True)}">{escape(label)}</a>'
 
 
 def main() -> int:

@@ -5,7 +5,7 @@
     "sha": "55a981dbf572a7e82daf88aa5683d6015480dd16",
     "reference": "refs/pull/139/merge",
     "target": "pr/139",
-    "reference_time": null,
+    "reference_time": "2026-09-19T20:14:21Z",
     "created_at": "2026-09-19T20:09:27Z",
     "completed_at": "2026-09-19T20:11:16Z",
     "head_sha": "1db4b4994b71e01bb52bc10e6c618469c8cf9312",
@@ -28,7 +28,7 @@
       }
     },
     "pull_request": 139,
-    "pull_state": "open",
+    "pull_state": "closed",
     "visible": true
   },
   {

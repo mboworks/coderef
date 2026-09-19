@@ -39,12 +39,16 @@ Completed, Commit, Workflow, Lines, Branches, and Functions. Coderef's Python ge
 rates from summed LCOV counters, links each immutable report and its LCOV/metadata downloads,
 and displays completion times in UTC. Zero or unavailable metric totals display `n/a`, including
 branch coverage when Rust instrumentation produces no branch measurements. Existing archives
-are read without modification. The overview shows the latest run per target, with main first;
-`history.html` retains every run and retry, including closed PRs. Run creation time determines
-which run is latest, so retrying an older run cannot replace a newer run. Attempts within a run
-are compared numerically. PR rows retain their own PR CI result, sorted by merge time after merging;
-the main row contains the latest main CI result. Open PRs follow merged PRs. The coverage figures
-describe Rust, not the Python or TypeScript scripts.
+are read without modification. The overview shows one result per PR, ordered by merge time,
+then open PRs. Pre-merge coverage is replaced only when a main report tests that PR's exact
+merge commit; unrelated main runs are omitted. Aggregation PR coverage is never attributed to
+its constituent PRs. PRs without pre-merge reports can still show post-merge coverage.
+`history.html` shows at most one pre-merge and one post-merge result per PR. Run creation time
+selects the newest run within each phase, with numeric attempt ordering for retries. Late
+pre-merge reports cannot displace post-merge results. Closed unmerged PRs are omitted from both
+views and reappear when reopened. All immutable run URLs remain available, including omitted
+runs and retries. A minimal `pull-requests.json` registry records merge SHAs for exact attribution.
+The coverage figures describe Rust, not the Python or TypeScript scripts.
 PR closure (including merge) and reopening trigger a metadata-only refresh using trusted `main`
 publisher code. This updates overview ordering and visibility without downloading artifacts or
 replacing measured coverage. Manual refreshes use `gh workflow run pages.yml -f coverage_refresh=true`;

@@ -12,8 +12,8 @@ versions follow [SemVer](https://semver.org/spec/v2.0.0.html).
 - Refresh coverage overview ordering and visibility on PR merge, closure, or reopening,
   without waiting for main CI; support manual coverage-only refreshes.
 - Add bounded Rust coverage CI with immutable per-run/per-attempt LCOV and HTML artifacts.
-- Publish retained coverage history to Pages, including late-attempt archives and pull-request
-  state filtering.
+- Publish one coverage result per PR, preferring exact merge-commit coverage, with a separate
+  pre-/post-merge view and immutable archives for all runs and attempts.
 - Restrict CI cache writes to main, preserve Cargo build timings, verify draft release assets
   before immutable publication, and add deployment-only website artwork and shared contributor rules.
 

@@ -93,6 +93,9 @@ def _pulls(path: Path) -> dict[int, dict]:
 def history(root: Path, pulls_path: Path | None = None) -> list[dict]:
     root.mkdir(parents=True, exist_ok=True)
     pulls = _pulls(pulls_path) if pulls_path else {}
+    registry = [{key: pull.get(key) for key in ("number", "state", "merged_at", "merge_commit_sha")}
+                for pull in pulls.values()]
+    (root / "pull-requests.json").write_text(json.dumps(registry, indent=2) + "\n", encoding="utf-8")
     reports = []
     for report in _reports(root):
         target = report.get("target", "main")
@@ -118,24 +121,47 @@ def _run_order(report: dict) -> tuple:
 
 def regenerate(root: Path) -> int:
     reports = _read(root / "history.json") if (root / "history.json").exists() else _reports(root)
-    reports.sort(key=_run_order, reverse=True)
+    pulls = _pulls(root / "pull-requests.json")
+    merges = {pull["merge_commit_sha"]: number for number, pull in pulls.items()
+              if pull.get("merged_at") and pull.get("merge_commit_sha")}
     latest = {}
-    for report in reports:
-        if report.get("visible", True):
-            latest.setdefault(report.get("target", "main"), report)
-    visible = sorted(latest.values(), key=lambda report: (
-        report.get("target", "main") == "main",
+    for original in sorted(reports, key=_run_order, reverse=True):
+        report = dict(original)
+        target = report.get("target", "main")
+        phase = ""
+        if target == "main":
+            number = merges.get(report.get("head_sha") or report.get("sha"))
+            if number is None:
+                continue
+            target = f"pr/{number}"
+            phase = "post-merge"
+        elif target.startswith("pr/"):
+            phase = "pre-merge"
+        if target.startswith("pr/"):
+            pull = pulls.get(int(target[3:]))
+            if pull is not None:
+                report["visible"] = pull.get("state") != "closed" or bool(pull.get("merged_at"))
+                report["reference_time"] = pull.get("merged_at")
+        if not report.get("visible", True):
+            continue
+        report.update(target=target, phase=phase)
+        latest.setdefault((target, phase), report)
+    phases = sorted(latest.values(), key=lambda report: (
         bool(report.get("reference_time")),
         _time(report.get("reference_time") or report.get("created_at") or report.get("completed_at")),
-        _run_order(report)), reverse=True)
+        report["phase"], _run_order(report)), reverse=True)
+    visible = [report for report in phases
+               if report["phase"] != "pre-merge" or (report["target"], "post-merge") not in latest]
     (root / "index.html").write_text(_render(
         root, visible, "coderef coverage reports",
-        "Latest report per target: main first, then merged PRs by merge time, then open PRs. "
-        "PR rows show PR CI coverage; main shows post-merge CI coverage. Closed unmerged PRs are omitted.",
-        _link("history.html", "All retained runs and attempts")), encoding="utf-8")
+        "One result per PR, ordered by merge time, then open PRs. Pre-merge coverage is replaced "
+        "only by coverage of the exact merge commit. Closed unmerged PRs are omitted; "
+        "their direct report URLs remain available.",
+        _link("history.html", "Pre-merge and post-merge results")), encoding="utf-8")
     (root / "history.html").write_text(_render(
-        root, reports, "coderef coverage run history",
-        "All retained CI runs and attempts, newest run first, including closed PRs.",
+        root, phases, "coderef pre-merge and post-merge coverage",
+        "One result per PR phase. Post-merge results test the exact merge commit; "
+        "retries and unrelated main runs are omitted.",
         _link("index.html", "Current coverage overview")), encoding="utf-8")
     return len(visible)
 
@@ -146,6 +172,8 @@ def _render(root: Path, reports: list[dict], title: str, description: str, navig
         target = report.get("target", "main")
         path = report["path"]
         label = f"PR {target[3:]}" if target.startswith("pr/") else target
+        if report.get("phase"):
+            label += f" ({report['phase']})"
         if target == "main":
             source = _link(f"{_REPOSITORY}/tree/main", "main branch")
         elif target.startswith("pr/"):

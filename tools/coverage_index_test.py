@@ -43,7 +43,7 @@ class CoverageIndexTest(unittest.TestCase):
             self.assertFalse(next(item for item in reports if item["target"] == "pr/12")["visible"])
             regenerate(root)
             self.assertNotIn("PR 12", (root / "index.html").read_text())
-            self.assertIn("PR 12", (root / "history.html").read_text())
+            self.assertNotIn("PR 12", (root / "history.html").read_text())
 
     def test_coverage_cli_archive_history_regenerate_links_resolve(self):
         script = Path(__file__).with_name("coverage_index.py")
@@ -140,17 +140,17 @@ class CoverageIndexTest(unittest.TestCase):
             self.assertEqual(regenerate(root), 0)
             self.assertIn("No coverage reports", (root / "index.html").read_text())
             records = [{"path": "runs/7/1", "target": '<script>alert("x")</script>'},
-                       {"path": "runs/8/1", "target": "main", "sha": "123456789"}]
+                       {"path": "runs/8/1", "target": "pr/8", "sha": "123456789"}]
             (root / "history.json").write_text(json.dumps(records))
             self.assertEqual(regenerate(root), 2)
             html = (root / "index.html").read_text()
             self.assertNotIn('<script>', html)
             self.assertIn('&lt;script&gt;', html)
-            self.assertIn('href="https://github.com/mboworks/coderef/tree/main"', html)
+            self.assertIn('href="https://github.com/mboworks/coderef/pull/8"', html)
             self.assertIn('href="https://github.com/mboworks/coderef/commit/123456789"', html)
             self.assertIn('n/a', html)
 
-    def test_coverage_overview_history_preserves_order_and_attempts(self):
+    def test_coverage_phase_view_collapses_attempts_preserves_archives(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory) / "site"
             incoming = Path(directory) / "incoming"
@@ -159,7 +159,7 @@ class CoverageIndexTest(unittest.TestCase):
                                             ("7", "2", "2026-01-03T00:00:00Z"),
                                             ("8", "1", "2026-01-02T00:00:00Z")):
                 (incoming / "metadata.json").write_text(json.dumps({
-                    "run_id": run, "run_attempt": attempt, "target": "main", "completed_at": completed}))
+                    "run_id": run, "run_attempt": attempt, "target": "pr/12", "completed_at": completed}))
                 archive(root, incoming)
             history(root)
             self.assertEqual(regenerate(root), 1)
@@ -169,19 +169,20 @@ class CoverageIndexTest(unittest.TestCase):
             self.assertIn('href="history.html"', html)
             archived = (root / "history.html").read_text()
             links = re.findall(r'href="(runs/[^"]+/html/index.html)"', archived)
-            self.assertEqual(links, ["runs/7/2/html/index.html", "runs/8/1/html/index.html",
-                                     "runs/7/1/html/index.html"])
+            self.assertEqual(links, ["runs/7/2/html/index.html"])
+            self.assertTrue((root / "runs/8/1/html/index.html").is_file())
+            self.assertTrue((root / "runs/7/1/html/index.html").is_file())
             self.assertIn('href="index.html"', archived)
 
-    def test_overview_late_retry_keeps_latest_run_and_main_first(self):
+    def test_overview_late_retry_keeps_latest_run_and_numeric_attempt(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             reports = [
-                {"target": "main", "run_id": "7", "run_attempt": "10", "path": "runs/7/10",
+                {"target": "pr/11", "run_id": "7", "run_attempt": "10", "path": "runs/7/10",
                  "created_at": "2026-01-01T00:00:00Z", "completed_at": "2026-01-04T00:00:00Z"},
-                {"target": "main", "run_id": "8", "run_attempt": "2", "path": "runs/8/2",
+                {"target": "pr/11", "run_id": "8", "run_attempt": "2", "path": "runs/8/2",
                  "created_at": "2026-01-02T00:00:00Z"},
-                {"target": "main", "run_id": "8", "run_attempt": "10", "path": "runs/8/10",
+                {"target": "pr/11", "run_id": "8", "run_attempt": "10", "path": "runs/8/10",
                  "created_at": "2026-01-02T00:00:00Z"},
                 {"target": "pr/12", "run_id": "9", "path": "runs/9/1",
                  "completed_at": "2026-01-05T00:00:00Z"},
@@ -193,9 +194,9 @@ class CoverageIndexTest(unittest.TestCase):
             self.assertEqual(regenerate(root), 2)
             html = (root / "index.html").read_text()
             links = re.findall(r'href="(runs/[^"]+/html/index.html)"', html)
-            self.assertEqual(links, ["runs/8/10/html/index.html", "runs/9/1/html/index.html"])
+            self.assertEqual(links, ["runs/9/1/html/index.html", "runs/8/10/html/index.html"])
             archived = (root / "history.html").read_text()
-            self.assertEqual(len(re.findall(r'href="runs/[^"]+/html/index.html"', archived)), 5)
+            self.assertEqual(len(re.findall(r'href="runs/[^"]+/html/index.html"', archived)), 2)
             self.assertEqual((root / "history.json").read_text(), original)
 
     def test_overview_merged_pr_keeps_pr_run_and_uses_merge_time(self):
@@ -222,7 +223,7 @@ class CoverageIndexTest(unittest.TestCase):
             regenerate(root)
             html = (root / "index.html").read_text()
             links = re.findall(r'href="(runs/[^"]+/html/index.html)"', html)
-            self.assertEqual(links, [f"runs/{run}/1/html/index.html" for run in (1, 2, 3, 4)])
+            self.assertEqual(links, [f"runs/{run}/1/html/index.html" for run in (2, 3, 4)])
 
     def test_history_refresh_merge_reorders_without_replacing_reports(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -255,6 +256,72 @@ class CoverageIndexTest(unittest.TestCase):
             self.assertEqual(row["head_sha"], "tested-13")
             self.assertEqual(row["run_id"], "13")
             self.assertEqual(row["coverage"]["lines"]["percent"], 90.0)
+            self.assertEqual({path.relative_to(root): path.read_bytes()
+                              for path in (root / "runs").rglob("*") if path.is_file()}, snapshots)
+
+    def test_coverage_exact_merge_reports_replace_pre_merge_preserve_snapshots(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "site"
+            incoming = Path(directory) / "incoming"
+            self.report(incoming)
+            pulls = Path(directory) / "pulls.json"
+            values = [
+                {"number": 12, "state": "closed", "merged_at": "2026-01-02T00:00:00Z",
+                 "merge_commit_sha": "merge-12"},
+                {"number": 13, "state": "closed", "merged_at": "2026-01-03T00:00:00Z",
+                 "merge_commit_sha": "aggregate-13"},
+                {"number": 14, "state": "closed", "merged_at": "2026-01-04T00:00:00Z",
+                 "merge_commit_sha": "merge-14"},
+                {"number": 15, "state": "closed", "merged_at": None,
+                 "merge_commit_sha": "unmerged-15"},
+            ]
+            pulls.write_text(json.dumps([values]))
+
+            def publish(run, target, sha, attempt=1):
+                (incoming / "metadata.json").write_text(json.dumps({
+                    "run_id": run, "run_attempt": attempt, "target": target, "head_sha": sha,
+                    "created_at": f"2026-01-{run:02}T00:00:00Z"}))
+                archive(root, incoming)
+                history(root, pulls)
+                regenerate(root)
+
+            def links(page):
+                return re.findall(r'href="(runs/[^"]+/html/index.html)"',
+                                  (root / page).read_text())
+
+            publish(1, "pr/12", "pre-12")
+            publish(2, "pr/13", "pre-13")
+            publish(5, "main", "aggregate-13")
+            # Aggregation coverage must not be attributed to its constituent PR.
+            self.assertEqual(links("index.html"), ["runs/5/1/html/index.html", "runs/1/1/html/index.html"])
+            publish(6, "main", "merge-14")  # Post-merge-only PR.
+            publish(4, "main", "merge-12")  # Older main arrives late.
+            publish(4, "main", "merge-12", attempt=10)
+            publish(4, "main", "merge-12", attempt=2)
+            publish(9, "pr/12", "late-pre-12")  # Never displace post-merge.
+            publish(10, "main", "unrelated")
+            publish(11, "main", "unmerged-15")  # A synthetic merge SHA is insufficient.
+            self.assertEqual(links("index.html"), ["runs/6/1/html/index.html",
+                                                   "runs/5/1/html/index.html", "runs/4/10/html/index.html"])
+            self.assertEqual(links("history.html"), ["runs/6/1/html/index.html",
+                "runs/2/1/html/index.html", "runs/5/1/html/index.html",
+                "runs/9/1/html/index.html", "runs/4/10/html/index.html"])
+            self.assertIn("PR 12 (post-merge)", (root / "index.html").read_text())
+            self.assertIn("PR 12 (pre-merge)", (root / "history.html").read_text())
+            snapshots = {path.relative_to(root): path.read_bytes()
+                         for path in (root / "runs").rglob("*") if path.is_file()}
+            # Closure hides both views; reopening restores the retained pre-merge report.
+            values[0].update(merged_at=None, state="closed")
+            pulls.write_text(json.dumps(values))
+            history(root, pulls)
+            regenerate(root)
+            for page in ("index.html", "history.html"):
+                self.assertNotIn("PR 12", (root / page).read_text())
+            values[0]["state"] = "open"
+            pulls.write_text(json.dumps(values))
+            history(root, pulls)
+            regenerate(root)
+            self.assertIn("PR 12 (pre-merge)", (root / "index.html").read_text())
             self.assertEqual({path.relative_to(root): path.read_bytes()
                               for path in (root / "runs").rglob("*") if path.is_file()}, snapshots)
 

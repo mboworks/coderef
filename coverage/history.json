@@ -124,8 +124,8 @@
       }
     },
     "pull_request": 145,
-    "pull_state": "open",
-    "visible": true
+    "pull_state": "closed",
+    "visible": false
   },
   {
     "run_id": "36049306588",
@@ -282,8 +282,8 @@
       }
     },
     "pull_request": 145,
-    "pull_state": "open",
-    "visible": true
+    "pull_state": "closed",
+    "visible": false
   },
   {
     "run_id": "36048746654",
@@ -408,8 +408,8 @@
       }
     },
     "pull_request": 145,
-    "pull_state": "open",
-    "visible": true
+    "pull_state": "closed",
+    "visible": false
   },
   {
     "run_id": "36048024491",

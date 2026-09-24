@@ -13,9 +13,9 @@
   },
   {
     "number": 143,
-    "state": "open",
-    "merged_at": null,
-    "merge_commit_sha": "6227234d238aa0022a738b4efde72cd7134d6727"
+    "state": "closed",
+    "merged_at": "2026-09-24T19:34:16Z",
+    "merge_commit_sha": "6e20c5542d71e888e867d2acf71112bd353f1bc6"
   },
   {
     "number": 142,

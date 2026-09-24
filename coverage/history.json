@@ -5,7 +5,7 @@
     "sha": "c40f1821c5f816b89c7ce196149afee082a327ce",
     "reference": "refs/pull/144/merge",
     "target": "pr/144",
-    "reference_time": null,
+    "reference_time": "2026-09-24T20:35:03Z",
     "created_at": "2026-09-24T19:36:49Z",
     "completed_at": "2026-09-24T19:38:57Z",
     "head_sha": "4897c588d4ac24404c127bb2d02386d891618476",
@@ -28,7 +28,71 @@
       }
     },
     "pull_request": 144,
-    "pull_state": "open",
+    "pull_state": "closed",
+    "visible": true
+  },
+  {
+    "run_id": "36048806199",
+    "run_attempt": "1",
+    "sha": "45d30044ef2e876f07e1421054b2b964d46031b4",
+    "reference": "refs/pull/144/merge",
+    "target": "pr/144",
+    "reference_time": "2026-09-24T20:35:03Z",
+    "created_at": "2026-09-24T19:32:10Z",
+    "completed_at": "2026-09-24T19:34:08Z",
+    "head_sha": "a85a32c411f68733ca0f5f6fdac2e969f486512e",
+    "path": "runs/36048806199/1",
+    "coverage": {
+      "lines": {
+        "covered": 6516,
+        "total": 7860,
+        "percent": 82.90076335877863
+      },
+      "branches": {
+        "covered": 0,
+        "total": 0,
+        "percent": null
+      },
+      "functions": {
+        "covered": 653,
+        "total": 741,
+        "percent": 88.12415654520917
+      }
+    },
+    "pull_request": 144,
+    "pull_state": "closed",
+    "visible": true
+  },
+  {
+    "run_id": "36048060441",
+    "run_attempt": "1",
+    "sha": "ccb044cc8a7072cb82ea1beb5b6fe842a81c8c5f",
+    "reference": "refs/pull/144/merge",
+    "target": "pr/144",
+    "reference_time": "2026-09-24T20:35:03Z",
+    "created_at": "2026-09-24T19:25:36Z",
+    "completed_at": "2026-09-24T19:27:36Z",
+    "head_sha": "ddec25ed3d94ec8f9e51756404a480581f6aaef9",
+    "path": "runs/36048060441/1",
+    "coverage": {
+      "lines": {
+        "covered": 6516,
+        "total": 7860,
+        "percent": 82.90076335877863
+      },
+      "branches": {
+        "covered": 0,
+        "total": 0,
+        "percent": null
+      },
+      "functions": {
+        "covered": 653,
+        "total": 741,
+        "percent": 88.12415654520917
+      }
+    },
+    "pull_request": 144,
+    "pull_state": "closed",
     "visible": true
   },
   {
@@ -190,38 +254,6 @@
     "visible": true
   },
   {
-    "run_id": "36048806199",
-    "run_attempt": "1",
-    "sha": "45d30044ef2e876f07e1421054b2b964d46031b4",
-    "reference": "refs/pull/144/merge",
-    "target": "pr/144",
-    "reference_time": null,
-    "created_at": "2026-09-24T19:32:10Z",
-    "completed_at": "2026-09-24T19:34:08Z",
-    "head_sha": "a85a32c411f68733ca0f5f6fdac2e969f486512e",
-    "path": "runs/36048806199/1",
-    "coverage": {
-      "lines": {
-        "covered": 6516,
-        "total": 7860,
-        "percent": 82.90076335877863
-      },
-      "branches": {
-        "covered": 0,
-        "total": 0,
-        "percent": null
-      },
-      "functions": {
-        "covered": 653,
-        "total": 741,
-        "percent": 88.12415654520917
-      }
-    },
-    "pull_request": 144,
-    "pull_state": "open",
-    "visible": true
-  },
-  {
     "run_id": "36048789465",
     "run_attempt": "1",
     "sha": "b90f4c5f9a66ae06958bff9e6b6e02f4715dfb47",
@@ -345,38 +377,6 @@
     },
     "pull_request": 141,
     "pull_state": "closed",
-    "visible": true
-  },
-  {
-    "run_id": "36048060441",
-    "run_attempt": "1",
-    "sha": "ccb044cc8a7072cb82ea1beb5b6fe842a81c8c5f",
-    "reference": "refs/pull/144/merge",
-    "target": "pr/144",
-    "reference_time": null,
-    "created_at": "2026-09-24T19:25:36Z",
-    "completed_at": "2026-09-24T19:27:36Z",
-    "head_sha": "ddec25ed3d94ec8f9e51756404a480581f6aaef9",
-    "path": "runs/36048060441/1",
-    "coverage": {
-      "lines": {
-        "covered": 6516,
-        "total": 7860,
-        "percent": 82.90076335877863
-      },
-      "branches": {
-        "covered": 0,
-        "total": 0,
-        "percent": null
-      },
-      "functions": {
-        "covered": 653,
-        "total": 741,
-        "percent": 88.12415654520917
-      }
-    },
-    "pull_request": 144,
-    "pull_state": "open",
     "visible": true
   },
   {

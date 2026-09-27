@@ -51,11 +51,13 @@ tree="$(make_tree)"
   workspace path, or a user directory.
 - Use a cleanup trap only for resources the script owns and only after the owned path is known.
 - Tests use their harness-owned temporary directories and must not delete unrelated paths.
+- Let the test harness clean up its scratch space; do not add per-case recursive deletion or
+  cleanup traps for resources the harness owns.
 
 ## Portability
 
 - Support the Bash versions available on the macOS and Linux runners in the CI matrix.
 - Do not assume GNU-only flags in scripts that run on macOS; branch on capabilities when necessary.
 - Avoid `mapfile` where a script must run under the system Bash shipped with macOS.
-- Preserve upper-case names for environment and Bazel runfile variables.
+- Preserve upper-case names for environment variables supplied by the caller or test harness.
 - Check required external programs early and fail with a useful message.

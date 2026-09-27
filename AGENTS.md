@@ -72,6 +72,34 @@ silently choosing one.
 - Prefer `Edit` over `Write` for surgical changes; reserve `Write` for full
   rewrites and brand-new files.
 
+## Git and pull-request operations
+
+[`GIT_RULES.md`](GIT_RULES.md) is canonical for branch management, pull-request readiness, merge
+ordering, dependency-graph planning, CI monitoring, and failure recovery.
+
+Before performing any state-changing Git or GitHub operation, read `GIT_RULES.md` completely and
+follow it. State-changing operations include commits, pushes, rebases, branch rewrites, retargeting,
+merges, auto-merge changes, CI reruns, and CI cancellation.
+
+For four or fewer in-scope pull requests, the primary agent may apply `GIT_RULES.md` directly.
+
+For more than four in-scope pull requests, delegate merge orchestration to one dedicated sub-agent.
+That sub-agent must:
+
+- read `GIT_RULES.md` completely before acting;
+- inspect the complete pull-request graph;
+- maintain the ignored orchestration ledger required by `GIT_RULES.md`;
+- have exclusive ownership of state-changing Git and GitHub operations for the graph;
+- continue autonomously until the graph reaches a terminal state;
+- report blockers and completed merges to the primary agent.
+
+While the merge-orchestration sub-agent is active, the primary agent and all other sub-agents must
+not mutate branches, pull requests, CI runs, or merge state within its scope. They may perform
+read-only analysis or work on explicitly disjoint tasks.
+
+The primary agent remains responsible for ensuring that the orchestrator's scope is correct and
+that no competing agent performs overlapping mutations.
+
 ## Git, infrastructure, and language rules
 
 Follow [GIT_RULES.md](GIT_RULES.md) for branches, PRs, CI, and releases. PR descriptions start
@@ -123,3 +151,14 @@ Quick rules for every PR:
 `docs/test-plan.md` is the holding pen for verifications that aren't
 yet codified. Empty is good; long is a code-smell signal that some
 test needs writing.
+
+## Shared documentation
+
+Shared MBO Works process conventions are maintained together across `mbo`, `proto`, `carve`,
+`xff`, `bashtest`, `bzl`, and `coderef`. When changing a common rule, synchronize the applicable
+sections of `AGENTS.md`, `GIT_RULES.md`, `RULES.md`, `CONTRIBUTING.md`, `CLAUDE.md`, and the
+language style guides, together with any checker and regression tests that enforce it.
+C++ conventions and their enforcement apply to the four C++ repositories only.
+Keep repository-specific architecture, public API contracts, namespaces, supported language
+versions, build commands, release formats, and test harnesses local. Do not copy a tool link or
+claim of enforcement into a repository that does not provide it.

@@ -1,5 +1,101 @@
 [
   {
+    "run_id": "36924316427",
+    "run_attempt": "1",
+    "sha": "fde04d223fe49593bcffd39cf3649b299d9d81be",
+    "reference": "refs/pull/154/merge",
+    "target": "pr/154",
+    "reference_time": "2026-10-01T20:54:32Z",
+    "created_at": "2026-10-01T20:48:52Z",
+    "completed_at": "2026-10-01T20:50:47Z",
+    "head_sha": "48593b162b58377b6912077fc00b25027fde24e8",
+    "path": "runs/36924316427/1",
+    "coverage": {
+      "lines": {
+        "covered": 6516,
+        "total": 7860,
+        "percent": 82.90076335877863
+      },
+      "branches": {
+        "covered": 0,
+        "total": 0,
+        "percent": null
+      },
+      "functions": {
+        "covered": 653,
+        "total": 741,
+        "percent": 88.12415654520917
+      }
+    },
+    "pull_request": 154,
+    "pull_state": "closed",
+    "visible": true
+  },
+  {
+    "run_id": "36923759528",
+    "run_attempt": "1",
+    "sha": "45e93647b2977b551c35753f40d26c633812a5eb",
+    "reference": "refs/pull/154/merge",
+    "target": "pr/154",
+    "reference_time": "2026-10-01T20:54:32Z",
+    "created_at": "2026-10-01T20:44:15Z",
+    "completed_at": "2026-10-01T20:46:06Z",
+    "head_sha": "8ef5f062626242f9f47d01e0445a7a3035caeb0a",
+    "path": "runs/36923759528/1",
+    "coverage": {
+      "lines": {
+        "covered": 6516,
+        "total": 7860,
+        "percent": 82.90076335877863
+      },
+      "branches": {
+        "covered": 0,
+        "total": 0,
+        "percent": null
+      },
+      "functions": {
+        "covered": 653,
+        "total": 741,
+        "percent": 88.12415654520917
+      }
+    },
+    "pull_request": 154,
+    "pull_state": "closed",
+    "visible": true
+  },
+  {
+    "run_id": "36914963104",
+    "run_attempt": "1",
+    "sha": "5c59c79e5739a35161054cf8e0db4acf35e6d512",
+    "reference": "refs/pull/154/merge",
+    "target": "pr/154",
+    "reference_time": "2026-10-01T20:54:32Z",
+    "created_at": "2026-10-01T19:31:51Z",
+    "completed_at": "2026-10-01T19:33:40Z",
+    "head_sha": "afe247ecb29d946093be675f7b84241ac5015652",
+    "path": "runs/36914963104/1",
+    "coverage": {
+      "lines": {
+        "covered": 6516,
+        "total": 7860,
+        "percent": 82.90076335877863
+      },
+      "branches": {
+        "covered": 0,
+        "total": 0,
+        "percent": null
+      },
+      "functions": {
+        "covered": 653,
+        "total": 741,
+        "percent": 88.12415654520917
+      }
+    },
+    "pull_request": 154,
+    "pull_state": "closed",
+    "visible": true
+  },
+  {
     "run_id": "36924275073",
     "run_attempt": "1",
     "sha": "77d51ff335a380f12e0ac213332f8ba6af2bc88a",
@@ -219,38 +315,6 @@
     },
     "pull_request": 153,
     "pull_state": "closed",
-    "visible": true
-  },
-  {
-    "run_id": "36923759528",
-    "run_attempt": "1",
-    "sha": "45e93647b2977b551c35753f40d26c633812a5eb",
-    "reference": "refs/pull/154/merge",
-    "target": "pr/154",
-    "reference_time": null,
-    "created_at": "2026-10-01T20:44:15Z",
-    "completed_at": "2026-10-01T20:46:06Z",
-    "head_sha": "8ef5f062626242f9f47d01e0445a7a3035caeb0a",
-    "path": "runs/36923759528/1",
-    "coverage": {
-      "lines": {
-        "covered": 6516,
-        "total": 7860,
-        "percent": 82.90076335877863
-      },
-      "branches": {
-        "covered": 0,
-        "total": 0,
-        "percent": null
-      },
-      "functions": {
-        "covered": 653,
-        "total": 741,
-        "percent": 88.12415654520917
-      }
-    },
-    "pull_request": 154,
-    "pull_state": "open",
     "visible": true
   },
   {
@@ -691,38 +755,6 @@
     },
     "pull_request": 147,
     "pull_state": "closed",
-    "visible": true
-  },
-  {
-    "run_id": "36914963104",
-    "run_attempt": "1",
-    "sha": "5c59c79e5739a35161054cf8e0db4acf35e6d512",
-    "reference": "refs/pull/154/merge",
-    "target": "pr/154",
-    "reference_time": null,
-    "created_at": "2026-10-01T19:31:51Z",
-    "completed_at": "2026-10-01T19:33:40Z",
-    "head_sha": "afe247ecb29d946093be675f7b84241ac5015652",
-    "path": "runs/36914963104/1",
-    "coverage": {
-      "lines": {
-        "covered": 6516,
-        "total": 7860,
-        "percent": 82.90076335877863
-      },
-      "branches": {
-        "covered": 0,
-        "total": 0,
-        "percent": null
-      },
-      "functions": {
-        "covered": 653,
-        "total": 741,
-        "percent": 88.12415654520917
-      }
-    },
-    "pull_request": 154,
-    "pull_state": "open",
     "visible": true
   },
   {

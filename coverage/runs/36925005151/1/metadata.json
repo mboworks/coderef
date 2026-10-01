@@ -1,0 +1,11 @@
+{
+  "run_id": "36925005151",
+  "run_attempt": "1",
+  "sha": "259ff7ead15e5232242a9551c0ceb71cfeaa2b79",
+  "reference": "refs/heads/main",
+  "target": "main",
+  "reference_time": "2026-10-01T20:56:27Z",
+  "created_at": "2026-10-01T20:54:35Z",
+  "completed_at": "2026-10-01T20:56:27Z",
+  "head_sha": "259ff7ead15e5232242a9551c0ceb71cfeaa2b79"
+}

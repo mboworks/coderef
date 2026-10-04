@@ -15,7 +15,8 @@
     "docs/release-website.md": "docs/release-website.html",
     "GIT_RULES.md": "GIT_RULES.html",
     "STYLE_SH.md": "STYLE_SH.html",
-    "docs/infrastructure.md": "docs/infrastructure.html"
+    "docs/infrastructure.md": "docs/infrastructure.html",
+    "docs/site-storage.md": "docs/site-storage.html"
   },
   "links": [
     {

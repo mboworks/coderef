@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import gzip
 import json
 from html import escape
 import shutil
@@ -19,8 +20,11 @@ _REPOSITORY = "https://github.com/mboworks/coderef"
 def _coverage(path: Path) -> dict:
     """Sum llvm-cov's per-file LCOV counters, without averaging percentages."""
     totals = {field: 0 for fields in _METRICS.values() for field in fields}
-    if path.exists():
-        for line in path.read_text(encoding="utf-8").splitlines():
+    compressed = path.with_suffix(path.suffix + ".gz")
+    if path.exists() or compressed.exists():
+        text = (path.read_text(encoding="utf-8") if path.exists()
+                else gzip.decompress(compressed.read_bytes()).decode("utf-8"))
+        for line in text.splitlines():
             field, _, value = line.partition(":")
             if field in totals:
                 totals[field] += int(value)
@@ -29,6 +33,40 @@ def _coverage(path: Path) -> dict:
                  "percent": 100 * totals[hit] / totals[found] if totals[found] else None}
         for metric, (hit, found) in _METRICS.items()
     }
+
+
+def report_coverage(directory: Path) -> dict:
+    """Prefer permanent aggregate measurements after source-detail expiration."""
+    summary = directory / "coverage-summary.json.gz"
+    if summary.exists():
+        return json.loads(gzip.decompress(summary.read_bytes()))["coverage"]
+    summary = directory / "coverage-summary.json"
+    if summary.exists():
+        return _read(summary)["coverage"]
+    return _coverage(directory / "lcov.info")
+
+
+def render_summary(metadata: dict, metrics: dict) -> str:
+    """Render a permanent aggregate landing page for each immutable attempt."""
+    rows = []
+    for name in _METRICS:
+        value = metrics[name]
+        rate = "n/a" if value["percent"] is None else f'{value["percent"]:.2f}%'
+        rows.append(f'<tr><th>{name}</th><td>{value["covered"]}</td>'
+                    f'<td>{value["total"]}</td><td>{rate}</td></tr>')
+    run = escape(str(metadata.get("run_id", "unknown")))
+    attempt = escape(str(metadata.get("run_attempt", 1)))
+    sha = escape(str(metadata.get("head_sha") or metadata.get("sha") or "unknown"))
+    completed = escape(str(metadata.get("completed_at") or metadata.get("created_at") or "undated"))
+    return (f'<!doctype html><html lang="en"><head><meta charset="utf-8">'
+            f'<title>coderef coverage: run {run}, attempt {attempt}</title></head><body>'
+            f'<h1>coderef coverage: run {run}, attempt {attempt}</h1>'
+            f'<p>Commit: {sha}; completed: {completed}</p>'
+            '<table class="coverageTable"><thead><tr><th>Metric</th><th>Covered</th>'
+            '<th>Total</th><th>Rate</th></tr></thead><tbody>' + "".join(rows) + '</tbody></table>'
+            '<p><a href="html/">Browse detailed source coverage</a> | '
+            '<a href="coverage-summary.json.gz">Summary JSON</a> | '
+            '<a href="lcov.info.gz">LCOV</a> | <a href="metadata.json">Metadata</a></p></body></html>')
 
 
 def _read(path: Path) -> dict:
@@ -77,7 +115,7 @@ def _reports(root: Path) -> list[dict]:
     for metadata_path in sorted((root / "runs").glob("*/*/metadata.json")):
         metadata = _read(metadata_path)
         metadata["path"] = metadata_path.parent.relative_to(root).as_posix()
-        metadata["coverage"] = _coverage(metadata_path.parent / "lcov.info")
+        metadata["coverage"] = report_coverage(metadata_path.parent)
         reports.append(metadata)
     return reports
 
@@ -192,14 +230,15 @@ def _render(root: Path, reports: list[dict], title: str, description: str, navig
             attempt = report.get("run_attempt", 1)
             if int(attempt) > 1:
                 workflow += f" (attempt {escape(str(attempt))})"
+        lcov = "lcov.info.gz" if (root / path / "lcov.info.gz").exists() else "lcov.info"
         details = (
             _link(f"{path}/html/index.html", label),
-            _link(f"{path}/lcov.info", "LCOV") + " · " + _link(f"{path}/metadata.json", "Metadata"),
+            _link(f"{path}/{lcov}", "LCOV") + " · " + _link(f"{path}/metadata.json", "Metadata"),
             source, timestamp, commit, workflow,
         )
         cells = [f"<td>{value}</td>" for value in details]
         # Read LCOV for old histories too, without modifying archived snapshots.
-        metrics = report.get("coverage") or _coverage(root / path / "lcov.info")
+        metrics = report.get("coverage") or report_coverage(root / path)
         for metric in _METRICS:
             value = metrics[metric]
             rate = "n/a" if value["percent"] is None else f'{value["percent"]:.2f}%'

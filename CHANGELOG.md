@@ -9,6 +9,9 @@ versions follow [SemVer](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- Preserve coverage aggregates indefinitely, compress report history, expire source HTML after
+  seven days, and measure complete publication size against a 250 MB advisory budget.
+
 - Allow serialized coverage backfill from a completed CI run without rerunning tests.
 
 - Publish successful coverage despite unrelated CI failures, and put post-merge before pre-merge

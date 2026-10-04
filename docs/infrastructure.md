@@ -38,8 +38,9 @@ The overview uses the same report table columns as the C++ repositories: Report,
 Completed, Commit, Workflow, Lines, Branches, and Functions. Coderef's Python generator computes
 rates from summed LCOV counters, links each immutable report and its LCOV/metadata downloads,
 and displays completion times in UTC. Zero or unavailable metric totals display `n/a`, including
-branch coverage when Rust instrumentation produces no branch measurements. Existing archives
-are read without modification. The overview shows one result per PR, ordered by merge time,
+branch coverage when Rust instrumentation produces no branch measurements. Aggregate measurements
+and original run metadata are preserved through storage compaction. The overview shows one result
+per PR, ordered by merge time,
 then open PRs. Pre-merge coverage is replaced only when a main report tests that PR's exact
 merge commit; unrelated main runs are omitted. Aggregation PR coverage is never attributed to
 its constituent PRs. PRs without pre-merge reports can still show post-merge coverage.
@@ -47,7 +48,8 @@ its constituent PRs. PRs without pre-merge reports can still show post-merge cov
 selects the newest run within each phase, with numeric attempt ordering for retries. Late
 pre-merge reports cannot displace post-merge results. Closed unmerged PRs are omitted from both
 views and reappear when reopened. All immutable run URLs remain available, including omitted
-runs and retries. A minimal `pull-requests.json` registry records merge SHAs for exact attribution.
+runs and retries; expired source views link to the permanent aggregate summary. A minimal
+`pull-requests.json` registry records merge SHAs for exact attribution.
 The coverage figures describe Rust, not the Python or TypeScript scripts.
 PR closure (including merge) and reopening trigger a metadata-only refresh using trusted `main`
 publisher code. This updates overview ordering and visibility without downloading artifacts or
@@ -101,3 +103,10 @@ Run `python3 -m unittest discover -s tools -p '*_test.py'`, `pre-commit run --al
 existing Cargo and extension checks appropriate to a change. Publishing orchestration is tested
 with mocked GitHub commands, including corrupt/missing assets, existing drafts, immutable retries,
 and failed remote verification. Live publication remains a tag-triggered external integration.
+
+## Published-site storage
+
+[Storage and retention](site-storage.md) describes permanent per-attempt summaries, compressed
+LLVM HTML, seven-day detail retention, original LCOV gzip downloads, and the 250 MB advisory.
+Both publication paths compact before committing and after deployment-only artwork, and fetch
+only a shallow publication snapshot. Neither Git history nor measured run identities are rewritten.

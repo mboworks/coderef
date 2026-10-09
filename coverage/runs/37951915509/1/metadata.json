@@ -1,0 +1,11 @@
+{
+  "run_id": "37951915509",
+  "run_attempt": "1",
+  "sha": "47fcaed434a8fdd6db3fec6ca40d82b538744e5d",
+  "reference": "refs/pull/161/merge",
+  "target": "pr/161",
+  "reference_time": "2026-10-09T15:29:38Z",
+  "created_at": "2026-10-09T15:27:48Z",
+  "completed_at": "2026-10-09T15:29:38Z",
+  "head_sha": "45ee4701975fbd19593f912259759ba4a07ab15a"
+}

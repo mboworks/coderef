@@ -5,7 +5,7 @@
     "sha": "f0ecb3612680555f801d4db8585f3dd3eea71b60",
     "reference": "refs/pull/159/merge",
     "target": "pr/159",
-    "reference_time": null,
+    "reference_time": "2026-10-09T00:30:37Z",
     "created_at": "2026-10-08T23:24:01Z",
     "completed_at": "2026-10-08T23:26:00Z",
     "head_sha": "d9e4966facfc2cfa187ffad6ffa285bb3c5e99fa",
@@ -28,7 +28,71 @@
       }
     },
     "pull_request": 159,
-    "pull_state": "open",
+    "pull_state": "closed",
+    "visible": true
+  },
+  {
+    "run_id": "37858801262",
+    "run_attempt": "1",
+    "sha": "7edd4551f0f85e692f85af9a1a853e2caa56acd6",
+    "reference": "refs/pull/159/merge",
+    "target": "pr/159",
+    "reference_time": "2026-10-09T00:30:37Z",
+    "created_at": "2026-10-08T23:19:39Z",
+    "completed_at": "2026-10-08T23:22:20Z",
+    "head_sha": "33f52cc4fd9b3a537eb2e607d04a9a7de2404d64",
+    "path": "runs/37858801262/1",
+    "coverage": {
+      "lines": {
+        "covered": 6516,
+        "total": 7860,
+        "percent": 82.90076335877863
+      },
+      "branches": {
+        "covered": 0,
+        "total": 0,
+        "percent": null
+      },
+      "functions": {
+        "covered": 653,
+        "total": 741,
+        "percent": 88.12415654520917
+      }
+    },
+    "pull_request": 159,
+    "pull_state": "closed",
+    "visible": true
+  },
+  {
+    "run_id": "37832070927",
+    "run_attempt": "1",
+    "sha": "8dfb364a50aa19522c33029f5e86060ef89db2c9",
+    "reference": "refs/pull/159/merge",
+    "target": "pr/159",
+    "reference_time": "2026-10-09T00:30:37Z",
+    "created_at": "2026-10-08T19:27:20Z",
+    "completed_at": "2026-10-08T19:30:14Z",
+    "head_sha": "97141adf9bdbfbcc8808f6942656d958654db651",
+    "path": "runs/37832070927/1",
+    "coverage": {
+      "lines": {
+        "covered": 6516,
+        "total": 7860,
+        "percent": 82.90076335877863
+      },
+      "branches": {
+        "covered": 0,
+        "total": 0,
+        "percent": null
+      },
+      "functions": {
+        "covered": 653,
+        "total": 741,
+        "percent": 88.12415654520917
+      }
+    },
+    "pull_request": 159,
+    "pull_state": "closed",
     "visible": true
   },
   {
@@ -90,38 +154,6 @@
       }
     },
     "pull_request": 160,
-    "pull_state": "open",
-    "visible": true
-  },
-  {
-    "run_id": "37858801262",
-    "run_attempt": "1",
-    "sha": "7edd4551f0f85e692f85af9a1a853e2caa56acd6",
-    "reference": "refs/pull/159/merge",
-    "target": "pr/159",
-    "reference_time": null,
-    "created_at": "2026-10-08T23:19:39Z",
-    "completed_at": "2026-10-08T23:22:20Z",
-    "head_sha": "33f52cc4fd9b3a537eb2e607d04a9a7de2404d64",
-    "path": "runs/37858801262/1",
-    "coverage": {
-      "lines": {
-        "covered": 6516,
-        "total": 7860,
-        "percent": 82.90076335877863
-      },
-      "branches": {
-        "covered": 0,
-        "total": 0,
-        "percent": null
-      },
-      "functions": {
-        "covered": 653,
-        "total": 741,
-        "percent": 88.12415654520917
-      }
-    },
-    "pull_request": 159,
     "pull_state": "open",
     "visible": true
   },
@@ -344,38 +376,6 @@
       }
     },
     "pull_request": 160,
-    "pull_state": "open",
-    "visible": true
-  },
-  {
-    "run_id": "37832070927",
-    "run_attempt": "1",
-    "sha": "8dfb364a50aa19522c33029f5e86060ef89db2c9",
-    "reference": "refs/pull/159/merge",
-    "target": "pr/159",
-    "reference_time": null,
-    "created_at": "2026-10-08T19:27:20Z",
-    "completed_at": "2026-10-08T19:30:14Z",
-    "head_sha": "97141adf9bdbfbcc8808f6942656d958654db651",
-    "path": "runs/37832070927/1",
-    "coverage": {
-      "lines": {
-        "covered": 6516,
-        "total": 7860,
-        "percent": 82.90076335877863
-      },
-      "branches": {
-        "covered": 0,
-        "total": 0,
-        "percent": null
-      },
-      "functions": {
-        "covered": 653,
-        "total": 741,
-        "percent": 88.12415654520917
-      }
-    },
-    "pull_request": 159,
     "pull_state": "open",
     "visible": true
   },

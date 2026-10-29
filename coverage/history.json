@@ -5,7 +5,7 @@
     "sha": "527605eab8241b6b26840bca1bc54284d5db12c0",
     "reference": "refs/pull/169/merge",
     "target": "pr/169",
-    "reference_time": null,
+    "reference_time": "2026-10-29T21:30:41Z",
     "created_at": "2026-10-29T21:28:01Z",
     "completed_at": "2026-10-29T21:30:09Z",
     "head_sha": "644ec6a4575f4820abfa97cb4bf5336f813a983d",
@@ -28,7 +28,39 @@
       }
     },
     "pull_request": 169,
-    "pull_state": "open",
+    "pull_state": "closed",
+    "visible": true
+  },
+  {
+    "run_id": "40955335141",
+    "run_attempt": "1",
+    "sha": "0a6660b96f31f3957007b265666986c93c2c02e0",
+    "reference": "refs/pull/169/merge",
+    "target": "pr/169",
+    "reference_time": "2026-10-29T21:30:41Z",
+    "created_at": "2026-10-29T21:09:26Z",
+    "completed_at": "2026-10-29T21:11:30Z",
+    "head_sha": "6269a7d3f513d5aaccd353598c11a7f868017b93",
+    "path": "runs/40955335141/1",
+    "coverage": {
+      "lines": {
+        "covered": 6516,
+        "total": 7860,
+        "percent": 82.90076335877863
+      },
+      "branches": {
+        "covered": 0,
+        "total": 0,
+        "percent": null
+      },
+      "functions": {
+        "covered": 653,
+        "total": 741,
+        "percent": 88.12415654520917
+      }
+    },
+    "pull_request": 169,
+    "pull_state": "closed",
     "visible": true
   },
   {
@@ -91,38 +123,6 @@
     },
     "pull_request": 170,
     "pull_state": "closed",
-    "visible": true
-  },
-  {
-    "run_id": "40955335141",
-    "run_attempt": "1",
-    "sha": "0a6660b96f31f3957007b265666986c93c2c02e0",
-    "reference": "refs/pull/169/merge",
-    "target": "pr/169",
-    "reference_time": null,
-    "created_at": "2026-10-29T21:09:26Z",
-    "completed_at": "2026-10-29T21:11:30Z",
-    "head_sha": "6269a7d3f513d5aaccd353598c11a7f868017b93",
-    "path": "runs/40955335141/1",
-    "coverage": {
-      "lines": {
-        "covered": 6516,
-        "total": 7860,
-        "percent": 82.90076335877863
-      },
-      "branches": {
-        "covered": 0,
-        "total": 0,
-        "percent": null
-      },
-      "functions": {
-        "covered": 653,
-        "total": 741,
-        "percent": 88.12415654520917
-      }
-    },
-    "pull_request": 169,
-    "pull_state": "open",
     "visible": true
   },
   {

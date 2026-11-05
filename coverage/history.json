@@ -60,8 +60,8 @@
       }
     },
     "pull_request": 177,
-    "pull_state": "open",
-    "visible": true
+    "pull_state": "closed",
+    "visible": false
   },
   {
     "run_id": "42093638543",

@@ -1,5 +1,37 @@
 [
   {
+    "run_id": "42093680079",
+    "run_attempt": "1",
+    "sha": "7b4e900a002d63a663df6b48b5736d19ae454681",
+    "reference": "refs/pull/178/merge",
+    "target": "pr/178",
+    "reference_time": null,
+    "created_at": "2026-11-05T19:25:05Z",
+    "completed_at": "2026-11-05T19:29:51Z",
+    "head_sha": "e7c46363d08c37b222a9f4029349555a41284d1b",
+    "path": "runs/42093680079/1",
+    "coverage": {
+      "lines": {
+        "covered": 6516,
+        "total": 7860,
+        "percent": 82.90076335877863
+      },
+      "branches": {
+        "covered": 0,
+        "total": 0,
+        "percent": null
+      },
+      "functions": {
+        "covered": 653,
+        "total": 741,
+        "percent": 88.12415654520917
+      }
+    },
+    "pull_request": 178,
+    "pull_state": "open",
+    "visible": true
+  },
+  {
     "run_id": "42093653295",
     "run_attempt": "1",
     "sha": "62200bb8ae400f16aeeb0788ee3fbd347560cdc6",

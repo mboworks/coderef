@@ -92,8 +92,8 @@
       }
     },
     "pull_request": 173,
-    "pull_state": "open",
-    "visible": true
+    "pull_state": "closed",
+    "visible": false
   },
   {
     "run_id": "42093680079",
@@ -156,8 +156,8 @@
       }
     },
     "pull_request": 175,
-    "pull_state": "open",
-    "visible": true
+    "pull_state": "closed",
+    "visible": false
   },
   {
     "run_id": "42093649428",
@@ -188,8 +188,8 @@
       }
     },
     "pull_request": 174,
-    "pull_state": "open",
-    "visible": true
+    "pull_state": "closed",
+    "visible": false
   },
   {
     "run_id": "42093667502",
@@ -220,8 +220,8 @@
       }
     },
     "pull_request": 176,
-    "pull_state": "open",
-    "visible": true
+    "pull_state": "closed",
+    "visible": false
   },
   {
     "run_id": "42093606272",
@@ -252,8 +252,8 @@
       }
     },
     "pull_request": 171,
-    "pull_state": "open",
-    "visible": true
+    "pull_state": "closed",
+    "visible": false
   },
   {
     "run_id": "42093622482",
@@ -284,8 +284,8 @@
       }
     },
     "pull_request": 172,
-    "pull_state": "open",
-    "visible": true
+    "pull_state": "closed",
+    "visible": false
   },
   {
     "run_id": "40958402956",

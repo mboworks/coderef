@@ -1,5 +1,37 @@
 [
   {
+    "run_id": "42116384151",
+    "run_attempt": "1",
+    "sha": "4b1dabbcecf4ab38dba54693f137db656612b459",
+    "reference": "refs/pull/180/merge",
+    "target": "pr/180",
+    "reference_time": "2026-11-05T22:03:02Z",
+    "created_at": "2026-11-05T21:51:23Z",
+    "completed_at": "2026-11-05T21:54:45Z",
+    "head_sha": "e39051faa000b2c0838b7dff3c39c6513a173be5",
+    "path": "runs/42116384151/1",
+    "coverage": {
+      "lines": {
+        "covered": 6516,
+        "total": 7860,
+        "percent": 82.90076335877863
+      },
+      "branches": {
+        "covered": 0,
+        "total": 0,
+        "percent": null
+      },
+      "functions": {
+        "covered": 653,
+        "total": 741,
+        "percent": 88.12415654520917
+      }
+    },
+    "pull_request": 180,
+    "pull_state": "closed",
+    "visible": true
+  },
+  {
     "run_id": "42116424966",
     "run_attempt": "1",
     "sha": "f1d250a74f8f3a5507a66385c84fdbe428f78a3b",
@@ -28,38 +60,6 @@
       }
     },
     "pull_request": 178,
-    "pull_state": "open",
-    "visible": true
-  },
-  {
-    "run_id": "42116384151",
-    "run_attempt": "1",
-    "sha": "4b1dabbcecf4ab38dba54693f137db656612b459",
-    "reference": "refs/pull/180/merge",
-    "target": "pr/180",
-    "reference_time": null,
-    "created_at": "2026-11-05T21:51:23Z",
-    "completed_at": "2026-11-05T21:54:45Z",
-    "head_sha": "e39051faa000b2c0838b7dff3c39c6513a173be5",
-    "path": "runs/42116384151/1",
-    "coverage": {
-      "lines": {
-        "covered": 6516,
-        "total": 7860,
-        "percent": 82.90076335877863
-      },
-      "branches": {
-        "covered": 0,
-        "total": 0,
-        "percent": null
-      },
-      "functions": {
-        "covered": 653,
-        "total": 741,
-        "percent": 88.12415654520917
-      }
-    },
-    "pull_request": 180,
     "pull_state": "open",
     "visible": true
   },

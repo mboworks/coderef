@@ -6,13 +6,13 @@
       "files": 5,
       "bytes": 1813
     },
-    "schema": {
-      "files": 2,
-      "bytes": 23045
-    },
     "coverage": {
       "files": 1080,
       "bytes": 9632110
+    },
+    "schema": {
+      "files": 2,
+      "bytes": 23045
     },
     "site": {
       "files": 16,

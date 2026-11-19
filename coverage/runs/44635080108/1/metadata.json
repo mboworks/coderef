@@ -1,0 +1,11 @@
+{
+  "run_id": "44635080108",
+  "run_attempt": "1",
+  "sha": "e4175b6e2fbfaadc3a7412a1436860d540a2d076",
+  "reference": "refs/heads/main",
+  "target": "main",
+  "reference_time": "2026-11-19T23:11:23Z",
+  "created_at": "2026-11-19T23:08:49Z",
+  "completed_at": "2026-11-19T23:11:23Z",
+  "head_sha": "e4175b6e2fbfaadc3a7412a1436860d540a2d076"
+}

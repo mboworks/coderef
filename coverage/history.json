@@ -1,5 +1,35 @@
 [
   {
+    "run_id": "45889713078",
+    "run_attempt": "1",
+    "sha": "605fe6482fbb2f3345312dda1ecfa5cbc385f9cf",
+    "reference": "refs/heads/main",
+    "target": "main",
+    "reference_time": "2026-11-26T20:17:08Z",
+    "created_at": "2026-11-26T20:15:28Z",
+    "completed_at": "2026-11-26T20:17:08Z",
+    "head_sha": "605fe6482fbb2f3345312dda1ecfa5cbc385f9cf",
+    "path": "runs/45889713078/1",
+    "coverage": {
+      "lines": {
+        "covered": 6516,
+        "total": 7860,
+        "percent": 82.90076335877863
+      },
+      "branches": {
+        "covered": 0,
+        "total": 0,
+        "percent": null
+      },
+      "functions": {
+        "covered": 653,
+        "total": 741,
+        "percent": 88.12415654520917
+      }
+    },
+    "visible": true
+  },
+  {
     "run_id": "45883451859",
     "run_attempt": "1",
     "sha": "5d69a199e628ffa51adc0b3101f305d40482021b",
@@ -60,8 +90,8 @@
       }
     },
     "pull_request": 186,
-    "pull_state": "open",
-    "visible": true
+    "pull_state": "closed",
+    "visible": false
   },
   {
     "run_id": "44635080108",
